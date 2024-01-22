@@ -1,0 +1,1 @@
+# Archivo dedicada a la minimización del autómata
