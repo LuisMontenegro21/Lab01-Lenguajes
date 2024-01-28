@@ -1,22 +1,24 @@
 # Archivo Python que corre o emplea el algoritmo Thompson para generar un AFN (Automata Finito No-Determinista)
-
 from graphviz import Digraph
+from Automata import NFA
+import re 
 
-class State:
-    def __init__(self, label=None):
-        self.transitions = {}
-        self.epsilon_transitions = set()
-        self.label = label
-        self.is_accepting = False
 
-# diccionario para definir la precedencia de las operaciones
-precedence = {'|' : 1, '^' : 2, '*' : 3}
+def regexToNFA(regex):
+    stack = []
+    for symbol in regex:
+        if symbol.isalpha():
+            stack.append(NFA.basic(symbol))
+        elif symbol == '|':
+            nfa2 = stack.pop()
+            nfa1 = stack.pop()
+            stack.append(NFA.union(nfa1, nfa2))
+        elif symbol == '*':
+            nfa2 = stack.pop()
+            nfa1 = stack.pop()
+            stack.append(NFA.concatenate(nfa1,nfa2))
+    
+    return stack.pop()
 
-# verificar si el operador está definido o es válido
-def isOperator(token):
-    return token in "|*^"
-
-# definir la presedencia de los operadores
-def hasHigherPrecedence(op1, op2):
-    return precedence[op1] > precedence[op2]
-
+def isAcceptingNFA(w):
+    pass
