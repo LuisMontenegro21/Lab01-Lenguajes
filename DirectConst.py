@@ -1,4 +1,8 @@
 # archivod dedicado a la construcción directa del autómata
 
-def NFAtoDFADirect():
+def NFAtoDFADirect(nfa):
+    pass
+
+
+def isAcceptingDFADirect(w):
     pass
