@@ -1,6 +1,6 @@
 # Archivo Python que corre o emplea el algoritmo Thompson para generar un AFN (Automata Finito No-Determinista)
 from graphviz import Digraph
-from Automata import NFAState, NFA, infixToPostfix
+from Automata import NFAState, NFA, Grapher, infixToPostfix
 
 # Función que implementa el algoritmo de Thompson para construir un AFN a partir de un árbol de expresión regular
 def thompson(node):
@@ -73,7 +73,7 @@ def putEpsilon(states):
     return putEpsilon
 
 # Función para simular un AFN en un input dado
-def showAFN(nfa, afnValue):
+def runNFA(nfa, afnValue):
     # Conjunto de estados actuales, inicializado con el estado inicial del AFN
     thisSs = set([nfa.stateS])  
     # Calcular cierre epsilon de los estados iniciales
@@ -100,4 +100,8 @@ def showAFN(nfa, afnValue):
 
 def buildUsingThompson(regex):
     postfix_regex = infixToPostfix(regex)
-    
+    root = Grapher.build(postfix_regex)
+    NFAState.count = 1
+    nfa = thompson(root)
+    visual_nfa = nfa.diagram()
+    visual_nfa.render(f'AFN', view = True, cleanup=True)

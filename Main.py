@@ -1,5 +1,5 @@
 #Archivo Python cuya función es concretar la ejecución del programa
-from Thompson import *
+from Thompson import buildUsingThompson, runNFA
 from Subset import NFAtoDFASubset
 from DirectConst import NFAtoDFADirect
 from Miminization import minimizeDFA
@@ -8,21 +8,17 @@ def main():
     print("+---------------------------------+")
     print("+EXPRESIONES REGULARES A AUTÓMATAS+")
     print("+---------------------------------+")
+
+
     print("\nIngrese la expresión regular: ")
-
     regex = str(input())    
-
     # convertir el regex a un AFN con Thompson
-    nfa = regexToNFA(regex)
+    nfa = buildUsingThompson(regex)
+    print("\nIngrese una cadena w: ")
+    w = str(input())
 
-    # convertir el AFN a un AFD con subset
-    dfa_subset = NFAtoDFASubset(nfa)
+    result = runNFA(nfa, w)
 
-    # convertir el AFN a un AFD con const direct
-    dfa_direct = NFAtoDFADirect(nfa)
-
-    # minimizar el AFD 
-    dfa_min = minimizeDFA(dfa_subset)
 
     print("\nIngrese la cadena w: ")
     w = str(input())
