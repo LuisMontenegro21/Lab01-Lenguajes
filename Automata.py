@@ -1,16 +1,15 @@
 # Archivo para definir las clases para los AFN y los AFD
 from graphviz import Digraph
+import re
 
 
 # Funciones para volver el regex a postfix
 # Para la presedencia de operadores
-precedence = {'|': 1,
-              '^': 2,
-              '*': 3}
+precedence = {'|': 1, '.': 2, '*': 3}
 
 # define operadores definidos
 def isOperator(token):
-        return token in "|^*"
+        return token in "|.*"
 
 #define la presedencia de los operadores
 def hasHigherPrecedence(op1, op2):
@@ -43,13 +42,35 @@ def shuntingYard(expression):
 
         return output
 
+# convertir el la expression a postfix para el AFN
 def infixToPostfix(expression):
+    # reemplaza los espacios y ve los tokens o caracteres y los guarda en tokens
     expression = expression.replace(" ", "")
     tokens = [c for c in expression]
 
+    # ejecuta el algoritmo shuntingYard y finalmente une la nueva expresión ya con los tokens en forma postfix
     postfix_tokens = shuntingYard(tokens)
     postfix_expression = "".join(postfix_tokens)
     return postfix_expression
+
+
+#----------------------------------------
+# Clases para la gráfica del autómata
+#----------------------------------------
+class Node:
+    # Definición de los nodos del árbol
+
+    def __init__(self, value):
+        # El valor del nodo, que representa un carácter de la expresión regular
+        self.value = value
+        # Referencia al hijo izquierdo (si existe)
+        self.left = None
+        # Referencia al hijo derecho (si existe)
+        self.right = None
+        # Lista de nodos siguientes que están conectados con transiciones epsilon
+        self.nextC = []
+
+
 
 
 
