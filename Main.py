@@ -1,5 +1,5 @@
 #Archivo Python cuya función es concretar la ejecución del programa
-from Thompson import regexToNFA, isAcceptingNFA
+
 from Subset import NFAtoDFASubset
 from DirectConst import NFAtoDFADirect
 from Miminization import minimizeDFA
