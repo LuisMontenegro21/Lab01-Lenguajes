@@ -26,11 +26,7 @@ def main():
 
     print("\nIngrese la cadena w: ")
     w = str(input())
-    isAcceptingNFA(w)
-    #isAcceptingDFASubset(w)
-    #isAcceptingDFADirect(w)
-    #isAcceptingDFAMin(w)
-        
+ 
 
 if __name__ == "__main__":
     main()
