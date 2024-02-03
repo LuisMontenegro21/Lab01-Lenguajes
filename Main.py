@@ -12,12 +12,19 @@ def main():
 
     print("\nIngrese la expresión regular: ")
     regex = str(input())    
-    # convertir el regex a un AFN con Thompson
-    nfa = buildUsingThompson(regex)
     print("\nIngrese una cadena w: ")
     w = str(input())
+    # convertir el regex a un AFN con Thompson
+    buildUsingThompson(regex)
 
-    result = runNFA(nfa, w)
+
+
+    if runNFA(w):
+        print("Cadena aceptada")
+    else:
+        print("Cadena rechazada")
+
+    
 
 
     print("\nIngrese la cadena w: ")

@@ -1,6 +1,8 @@
 # Archivo Python que corre o emplea el algoritmo Thompson para generar un AFN (Automata Finito No-Determinista)
-from graphviz import Digraph
-from Automata import NFAState, NFA, Grapher, infixToPostfix
+from Automata import NFAState, NFA, infixToPostfix
+from Root import *
+
+
 
 # Función que implementa el algoritmo de Thompson para construir un AFN a partir de un árbol de expresión regular
 def thompson(node):
@@ -99,8 +101,9 @@ def runNFA(nfa, afnValue):
 
 
 def buildUsingThompson(regex):
+    grapher = Grapher()
     postfix_regex = infixToPostfix(regex)
-    root = Grapher.build(postfix_regex)
+    root = grapher.build(postfix_regex)
     NFAState.count = 1
     nfa = thompson(root)
     visual_nfa = nfa.diagram()
