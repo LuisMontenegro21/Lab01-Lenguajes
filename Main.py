@@ -1,8 +1,10 @@
 #Archivo Python cuya función es concretar la ejecución del programa
 from Thompson import buildUsingThompson, runNFA
-
+from Subset import buildUsingSubset
+from NFAautomata import NFA 
 
 def main():
+    nfainstance = NFA()
     print("+---------------------------------+")
     print("+EXPRESIONES REGULARES A AUTÓMATAS+")
     print("+---------------------------------+")
@@ -18,7 +20,7 @@ def main():
     print("AFN: " + str(runNFA(nfa, w)))
 
     # Para graficar y testear el algoritmo de subconjuntos para AFD
-    
+    dfa = buildUsingSubset(nfainstance.toNFAParams())
 
 
 if __name__ == "__main__":

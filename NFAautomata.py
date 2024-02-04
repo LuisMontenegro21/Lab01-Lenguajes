@@ -1,4 +1,4 @@
-# Archivo para definir las clases para los AFN y los AFD
+# Archivo para definir las clases para el AFN
 from graphviz import Digraph
 
 
@@ -84,6 +84,9 @@ class NFAState:
             self.changes[character] = []  
         # Agregar el estado de destino a las transiciones con el carácter dado
         self.changes[character].append(state)  
+
+    def get_alphabet(self):
+        return list(self.changes.keys())
 
 
 class NFA:
@@ -171,11 +174,3 @@ class NFA:
 
 
 
-#----------------------------------------
-# Clases del AFD
-#----------------------------------------
-class DFAState:
-    pass
-
-class  DFA:
-    pass
