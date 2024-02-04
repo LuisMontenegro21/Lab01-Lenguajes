@@ -20,14 +20,14 @@ class Grapher(object):
         stack = []
 
         for character in Regex:
-            if character not in "*.^":
-                # Si el carácter no es un operador (*, | o .), crear un nuevo nodo para él y apilarlo
+            if character not in "*.|?+":
+                # Si el carácter no es un operador (*.|?+), crear un nuevo nodo para él y apilarlo
                 newN = Node(character)
                 stack.append(newN)
 
             else:
                 if character == "*":
-                    # Si es el operador de repetición (*)
+                    # Si es el operador de repetición *
                     if len(stack) >= 1:
                         
                         nodes = stack.pop()
@@ -37,7 +37,29 @@ class Grapher(object):
                         stack.append(newN)
                     else:
                         raise Exception("Expresión inválida: Falta operando para *")
-
+                
+                elif character == "+":
+                    # Si es el operador de uno o más (+)
+                    if len(stack) >= 1:
+                        nodes = stack.pop()
+                        newN = Node(character)
+                        # Conectar el nodo de uno o más al último nodo apilado
+                        newN.nextC.append(nodes)  
+                        stack.append(newN)
+                    else:
+                        raise Exception("Expresión inválida: Falta operando para +")
+                
+                elif character == "?":
+                    # Si es el operador de cero o uno (?)
+                    if len(stack) >= 1:
+                        nodes = stack.pop()
+                        newN = Node(character)
+                        # Conectar el nodo de cero o uno al último nodo apilado
+                        newN.nextC.append(nodes)  
+                        stack.append(newN)
+                    else:
+                        raise Exception("Expresión inválida: Falta operando para ?")
+                
                 else:
                     if character in "|.":
                         # Si es un operador OR (|) o concatenación (.)

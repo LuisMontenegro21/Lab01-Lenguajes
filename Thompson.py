@@ -11,17 +11,17 @@ def thompson(node):
         return NFA.getCharacter(node.value)  
 
     if node.value == "*":
-        NFATemp = thompson(node.nextC[0])
+        nfaExp = thompson(node.nextC[0])
         start = NFAState()
         end = NFAState()
         # Conexión con transición epsilon desde el nuevo estado inicial al inicio del sub-AFN
-        start.add(None, NFATemp.stateS)
+        start.add(None, nfaExp.stateS)
         # Conexión con transición epsilon desde el nuevo estado inicial al nuevo estado final
         start.add(None, end)
         # Conexión con transición epsilon desde el estado final del sub-AFN al inicio del sub-AFN
-        NFATemp.stateE.add(None, NFATemp.stateS)
+        nfaExp.stateE.add(None, nfaExp.stateS)
         # Conexión con transición epsilon desde el estado final del sub-AFN al nuevo estado final
-        NFATemp.stateE.add(None, end)  
+        nfaExp.stateE.add(None, end)  
 
         return NFA(start, end)
          
@@ -130,16 +130,14 @@ def runNFA(nfa, afnValue):
     for state in thisSs:
         if state.final:
             # Si al menos uno de los estados actuales es final, la cadena es aceptada
-            return True  
+            return "Sí"  
     # Si ninguno de los estados actuales es final, la cadena es rechazada
-    return False  
+    return "No"  
 
 
 def buildUsingThompson(regex):
     grapher = Grapher()
     postfix_regex = infixToPostfix(regex)
-    root = grapher.build(postfix_regex)
-    NFAState.count = 1
-    nfa = thompson(root)
+    nfa = thompson(grapher.build(postfix_regex))
     visual_nfa = nfa.diagram()
     visual_nfa.render(f'AFN', view = True, cleanup=True)
