@@ -20,7 +20,7 @@ def main():
     print("AFN: " + str(runNFA(nfa, w)))
 
     # Para graficar y testear el algoritmo de subconjuntos para AFD
-    dfa = buildUsingSubset(nfainstance.toNFAParams())
+    dfa = buildUsingSubset(nfa)
 
 
 if __name__ == "__main__":

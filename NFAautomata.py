@@ -68,6 +68,8 @@ class NFAState:
     # Se inicia en 1
     count = 1  
 
+    states = []
+
     def __init__(self):
         # Asignar un número único de estado basado en el contador
         self.number = NFAState.count
@@ -77,6 +79,8 @@ class NFAState:
         self.final = False
         # Incrementar el contador de estados para el próximo estado creado
         NFAState.count += 1  
+        NFAState.states.append(self)
+
 
     def add(self, character, state):
         if character not in self.changes:
