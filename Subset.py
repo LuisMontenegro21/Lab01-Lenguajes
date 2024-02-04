@@ -1,4 +1,3 @@
-# archivo dedicado a realizar el algoritmo de subset para el autómata
 # Archivo para la conversión del AFN a un AFD mediante construcción de subconjuntos
 from graphviz import Digraph
 
@@ -15,7 +14,7 @@ class AFD:
         self.transitions = transitions
 
         self.graph = Digraph()
-        self.alphabet.append('e')
+        self.alphabet.append('e' or 'ε')
         self.num_alphabet = num_alphabet + 1
 
         self.states_dict = dict()
@@ -43,19 +42,21 @@ class AFD:
         
         while(len(closure_stack) > 0):
             curr = closure_stack.pop(0)
-            for i in self.transition_table[str(curr)+str(self.alphabet_dict['e'])]:
+            for i in self.transition_table[str(curr)+str(self.alphabet_dict['e' or 'ε'])]:
                 if i not in closure.keys():
                     closure[i] = 0
                     closure_stack.append(i)
             closure[curr] = 1
         return closure.keys()
     
+    # ver el nombre del estado en que se está
     def stateName(self, state_list):
         name = ''
         for i in state_list:
             name += self.states[i]
         return name
     
+    # ver si el estado en el que está es estado final
     def isFinalStateDFA(self, state_list):
         for i in state_list:
             for j in self.final_states:
@@ -128,12 +129,12 @@ class AFD:
                 else:
                     if (-1) not in dfa_states:
                         dfa.attr('node', shape = 'circle')
-                        dfa.node('φ')
+                        dfa.node('e')
 
                         for a in range (nfa.num_alphabet - 1):
-                            dfa.edge('φ', 'φ', nfa.alphabet[a])
+                            dfa.edge('e', 'e', nfa.alphabet[a])
                         
                         dfa_states.append(-1)
 
-                    dfa.edge(nfa.stateName(curr_state), 'φ', label = nfa.alphabet[all])
+                    dfa.edge(nfa.stateName(curr_state), 'e', label = nfa.alphabet[all])
         dfa.render('dfa', view = True)     

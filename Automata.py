@@ -4,11 +4,11 @@ from graphviz import Digraph
 
 # Funciones para volver el regex a postfix
 # Para la presedencia de operadores
-precedence = {'|': 1, '.': 2, '*': 3}
+precedence = {'|': 1, '.': 2, '*': 3, '+' : 3, '?' : 3}
 
 # define operadores definidos
 def isOperator(token):
-        return token in "|.*"
+        return token in "|.*+?"
 
 #define la presedencia de los operadores
 def hasHigherPrecedence(op1, op2):
@@ -50,6 +50,7 @@ def infixToPostfix(expression):
     # ejecuta el algoritmo shuntingYard y finalmente une la nueva expresión ya con los tokens en forma postfix
     postfix_tokens = shuntingYard(tokens)
     postfix_expression = "".join(postfix_tokens)
+    
     return postfix_expression
 
 

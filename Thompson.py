@@ -24,6 +24,38 @@ def thompson(node):
         NFATemp.stateE.add(None, end)  
 
         return NFA(start, end)
+         
+    if node.value == "+":
+        # Construir el AFN para la expresión a la que se aplica el operador '+'
+        nfaExpr = thompson(node.nextC[0])
+        start = NFAState()
+        end = NFAState()
+        # Conexión con transición epsilon desde el nuevo estado inicial al inicio del sub-AFN
+        start.add(None, nfaExpr.stateS)
+        # Conexión con transición epsilon desde el estado final del sub-AFN al inicio del sub-AFN
+        nfaExpr.stateE.add(None, nfaExpr.stateS)
+        # Conexión con transición epsilon desde el estado final del sub-AFN al nuevo estado final
+        nfaExpr.stateE.add(None, end)
+        # Conexión con transición epsilon desde el nuevo estado inicial al nuevo estado final
+        start.add(None, end)
+
+        return NFA(start, end)
+    
+    if node.value == "?":
+        # Construir el AFN para la expresión a la que se aplica el operador '?'
+        nfaExpr = thompson(node.nextC[0])
+        start = NFAState()
+        end = NFAState()
+        # Conexión con transición epsilon desde el nuevo estado inicial al inicio del sub-AFN
+        start.add(None, nfaExpr.stateS)
+        # Conexión con transición epsilon desde el estado final del sub-AFN al nuevo estado final
+        nfaExpr.stateE.add(None, end)
+        # Conexión con transición epsilon desde el nuevo estado inicial al nuevo estado final
+        start.add(None, end)
+
+        return NFA(start, end)
+
+
 
     if node.value == "|":
         # Construir el AFN para la parte izquierda de la expresión
@@ -52,6 +84,9 @@ def thompson(node):
         nfaL.conection(nfaR)
 
         return NFA(nfaL.stateS, nfaR.stateE)
+
+    
+
     
 # Función para calcular el cierre epsilon de un conjunto de estados
 def putEpsilon(states):
