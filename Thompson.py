@@ -141,3 +141,5 @@ def buildUsingThompson(regex):
     nfa = thompson(grapher.build(postfix_regex))
     visual_nfa = nfa.diagram()
     visual_nfa.render(f'AFN', view = True, cleanup=True)
+    
+    return nfa

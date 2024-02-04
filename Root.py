@@ -1,6 +1,6 @@
-#----------------------------------------
-# Clases para la gráfica del autómata
-#----------------------------------------
+#----------------------------------------------------
+# Clases para la gráfica del autómata no-determinista
+#----------------------------------------------------
 class Node:
     # Definición de los nodos del árbol
 
