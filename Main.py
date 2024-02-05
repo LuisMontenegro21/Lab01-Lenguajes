@@ -22,6 +22,8 @@ def main():
     # Para graficar y testear el algoritmo de subconjuntos para AFD
     dfa = buildUsingSubset(nfa)
 
+    # Para graficar y testear el AFD minimizado 
+
 
 if __name__ == "__main__":
     main()

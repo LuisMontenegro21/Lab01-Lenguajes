@@ -6,6 +6,7 @@
 # Archivo para la conversión del AFN a un AFD mediante construcción de subconjuntos
 from graphviz import Digraph
 
+
 class DFA:
     def __init__(self, num_states, states, num_alphabet, alphabet, start, num_final, final_states, num_transitions, transitions):
         self.num_states = num_states
@@ -19,24 +20,28 @@ class DFA:
         self.transitions = transitions
 
         self.graph = Digraph()
-        self.alphabet.append('e' or 'ε')
+        self.alphabet.append('ε')
         self.num_alphabet = num_alphabet + 1
 
+        # para llenar los estados en states_dict
         self.states_dict = dict()
         for i in range(self.num_states):
             self.states_dict[self.states[i]] = i
+
+        # para llenar los caracteres del alfabeto en alphabet_dict
         self.alphabet_dict = dict()
         for i in range(self.num_alphabet):
             self.alphabet_dict[self.alphabet[i]] = i
 
+        # para crear la tabla de transiciones (vacía)
         self.transition_table = dict()
         for i in range(self.num_states):
             for j in range(self.num_alphabet):
                 self.transition_table[str(i)+str(j)] = []
+
+        
         for i in range(self.num_transitions):
             self.transition_table[str(self.states_dict[self.transitions[i][0]]) + str(self.alphabet_dict[self.transitions[i][1]])].append(self.states_dict[self.transitions[i][2]])
-        
-    
     
     def epsilonClosure(self, state):
         #Se crea un diccionario para ver si el estado ya ha sido visitado
@@ -47,7 +52,7 @@ class DFA:
         
         while(len(closure_stack) > 0):
             curr = closure_stack.pop(0)
-            for i in self.transition_table[str(curr)+str(self.alphabet_dict['e' or 'ε'])]:
+            for i in self.transition_table[str(curr)+str(self.alphabet_dict['ε'])]:
                 if i not in closure.keys():
                     closure[i] = 0
                     closure_stack.append(i)
@@ -84,7 +89,7 @@ class DFA:
         nfa.graph.edge('', nfa.start)   
 
         for i in nfa.transitions:
-            nfa.graph.edge(i[0], i[2], label = ('ε', i[1])[i[1] != 'e'])
+            nfa.graph.edge(i[0], i[2], label = ('ε', i[1])[i[1] != 'ε'])
         nfa.graph.render('nfa', view = True)
 
         #graficando el AFD

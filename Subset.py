@@ -6,3 +6,11 @@ def buildUsingSubset(nfa):
     dfa.graphing(nfa)
     return dfa
     
+
+def isAcceptedSubset(dfa):
+    # modificar este pseudocodigo
+    s = dfa.start
+    c = nextChar()
+    while (c not in dfa.final_states):
+        s = move(s,c)
+        c = nextChar()
