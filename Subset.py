@@ -2,6 +2,7 @@
 from DFAautomata import *
 
 def buildUsingSubset(nfa):
+    #print(*nfa.toNFAParams())
     dfa = DFA(*nfa.toNFAParams())
     dfa.graphing(nfa)
     return dfa

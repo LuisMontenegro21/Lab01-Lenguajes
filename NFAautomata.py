@@ -90,7 +90,9 @@ class NFAState:
         self.changes[character].append(state)  
 
     def get_alphabet(self):
-        return list(self.changes.keys())
+        alphabet = [i for i in self.changes.keys() if i is not None]
+        print(f"State {self.number} alphabet: {alphabet}")
+        return alphabet
 
 
 class NFA:
@@ -102,6 +104,24 @@ class NFA:
         start.add(character, end)  # Conectar el estado inicial con el final usando el carácter
 
         return NFA(start, end)  # Devolver el AFN creado
+    
+    def getStates(self):
+        return NFAState.states
+    
+    def getTransitions(self):
+        num_states = NFAState.count  # Numero de estados
+        transitions = []
+
+        # Iterar para construir las transiciones
+        for state in NFAState.states:
+            state_name = str(state.number)
+            for character, next_states in state.changes.items():
+                for next_state in next_states:
+                    next_state_name = str(next_state.number)
+                    transitions.append([state_name, character, next_state_name])
+
+        return transitions
+
 
     def __init__(self, start=None, end=None):
         # Constructor de la clase Afn para crear un AFN
@@ -155,18 +175,13 @@ class NFA:
         return dot  
     
     def toNFAParams(self):
-        # extrae los parametros de la clase
-        num_states = NFAState.count  # numero de estados
-        states = [str(i) for i in range(1, num_states + 1)]  # lista de los estados
-        num_alphabet = len(self.stateS.get_alphabet())  # numero de alfabetos
-        alphabet = list(self.stateS.get_alphabet())  # lista de alfabetos
-        start = '1'  # estado inicial
-        num_final = 1  # numero de estados finales
-        final_states = [str(num_states)]  # lista de estados finales como string
-        num_transitions = sum(len(s.changes) for s in NFAState.states)  # numero de transiciones
+        num_states = NFAState.count  # Numero de estados
+        states = [str(i) for i in range(1, num_states + 1)]  # Lista de estados
+        alphabet_set = set()  # Set del alfabeto
+
         transitions = []
 
-        # Iterar para construir la tabla de transiciones
+        # Iterar para construir las transiciones y tomar el alfabeto
         for state in NFAState.states:
             state_name = str(state.number)
             for character, next_states in state.changes.items():
@@ -174,7 +189,20 @@ class NFA:
                     next_state_name = str(next_state.number)
                     transitions.append([state_name, character, next_state_name])
 
-        return num_states, states, num_alphabet, alphabet, start, num_final, final_states, num_transitions, transitions
+                    # Añadir los caracteres al alfabeto, exceptuando None (epsilom)
+                    if character is not None:
+                        alphabet_set.add(character)
+
+        # Convertir el alfabeto a una lista sorteada
+        alphabet = sorted(list(alphabet_set))
+
+        start = '1'  # Estado inicial
+        num_final = 1  # Numero de estados finales (arreglar para que puedan ser varios)
+        final_states = [str(num_states)]  # Lista de estados finales como strings
+        num_transitions = len(transitions)  # Numero de transiciones
+
+        return num_states, states, len(alphabet), alphabet, start, num_final, final_states, num_transitions, transitions
+
 
 
 

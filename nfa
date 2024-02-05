@@ -1,0 +1,27 @@
+digraph {
+	node [shape=circle]
+	<NFAautomata.NFAState object at 0x0000027BB5FDCF90>
+	node [shape=circle]
+	<NFAautomata.NFAState object at 0x0000027BB5FDD290>
+	node [shape=circle]
+	<NFAautomata.NFAState object at 0x0000027BB6762C90>
+	node [shape=circle]
+	<NFAautomata.NFAState object at 0x0000027BB6762C50>
+	node [shape=circle]
+	<NFAautomata.NFAState object at 0x0000027BB6762FD0>
+	node [shape=circle]
+	<NFAautomata.NFAState object at 0x0000027BB67631D0>
+	node [shape=circle]
+	<NFAautomata.NFAState object at 0x0000027BB6763250>
+	node [shape=circle]
+	<NFAautomata.NFAState object at 0x0000027BB6763290>
+	node [shape=none]
+	""
+	"" -> 7
+	3 -> 4 [label=a]
+	4 -> 8
+	5 -> 6 [label=b]
+	6 -> 8
+	7 -> 3
+	7 -> 5
+}

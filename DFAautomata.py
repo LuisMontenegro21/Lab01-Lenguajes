@@ -41,11 +41,18 @@ class DFA:
 
         
         for i in range(self.num_transitions):
-            self.transition_table[str(self.states_dict[self.transitions[i][0]]) + str(self.alphabet_dict[self.transitions[i][1]])].append(self.states_dict[self.transitions[i][2]])
+            current_state = self.transitions[i][0]
+            input_symbol = self.transitions[i][1]
+            next_state = self.transitions[i][2]
+
+            # chequear si la transición es None (epsilon) y manejarla acorde
+            if input_symbol is None:
+                self.transition_table[str(self.states_dict[current_state]) + str(self.alphabet_dict['ε'])].append(self.states_dict[next_state])
+            else:
+                self.transition_table[str(self.states_dict[current_state]) + str(self.alphabet_dict[input_symbol])].append(self.states_dict[next_state])
     
     def epsilonClosure(self, state):
         #Se crea un diccionario para ver si el estado ya ha sido visitado
-        #y un array va a 
         closure = dict()
         closure[self.states_dict[state]] = 0
         closure_stack = [self.states_dict[state]]
@@ -69,37 +76,39 @@ class DFA:
     # ver si el estado en el que está es estado final
     def isFinalStateDFA(self, state_list):
         for i in state_list:
-            for j in self.final_states:
-                if (i == self.states_dict[j]):
-                    return True
+            if i == self.stateE.number:
+                return True
         return False
 
     def graphing(self, nfa):
         #graficando el AFD
         nfa.graph = Digraph()
-        for i in nfa.states:
-            if (i not in nfa.final_states):
-                nfa.graph.attr('node', shape = 'circle')
-                nfa.graph.node(i)
-            else: 
-                nfa.graph.attr('node', shape = 'doublecircle')
-                nfa.graph.node(i)
+        for i in nfa.getStates():
+            if (i not in [nfa.stateS.number, nfa.stateE.number]):
+                nfa.graph.attr('node', shape='circle')
+                nfa.graph.node(str(i))
+            elif i == nfa.stateE.number:
+                nfa.graph.attr('node', shape='doublecircle')
+                nfa.graph.node(str(i))
+            else:
+                nfa.graph.attr('node', shape='circle')
+                nfa.graph.node(str(i))
         nfa.graph.attr('node', shape = 'none')
         nfa.graph.node('')
-        nfa.graph.edge('', nfa.start)   
+        nfa.graph.edge('', str(nfa.stateS.number))   
 
-        for i in nfa.transitions:
+        for i in nfa.getTransitions():
             nfa.graph.edge(i[0], i[2], label = ('ε', i[1])[i[1] != 'ε'])
         nfa.graph.render('nfa', view = True)
 
         #graficando el AFD
         dfa = Digraph()
         epsilon_closure = dict()
-        for i in nfa.states:
+        for i in nfa.stateS.states:
             epsilon_closure[i] = list(nfa.epsilonClosure(i))
         
         dfa_stack = list()
-        dfa_stack.append(epsilon_closure[nfa.start])
+        dfa_stack.append(epsilon_closure[nfa.stateS.number])
 
         if (nfa.isFinalStateDFA(dfa_stack[0])):
             dfa.attr('node', shape = 'doublecircle')
