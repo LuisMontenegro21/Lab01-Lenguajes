@@ -23,7 +23,7 @@ def main():
     dfa = buildUsingSubset(nfa)
 
     # Para graficar y testear el AFD minimizado 
-
+    
 
 if __name__ == "__main__":
     main()

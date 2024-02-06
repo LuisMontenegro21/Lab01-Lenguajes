@@ -32,12 +32,15 @@ class DFA:
         self.alphabet_dict = dict()
         for i in range(self.num_alphabet):
             self.alphabet_dict[self.alphabet[i]] = i
+        
 
         # para crear la tabla de transiciones (vacía)
         self.transition_table = dict()
-        for i in range(self.num_states):
-            for j in range(self.num_alphabet):
-                self.transition_table[str(i)+str(j)] = []
+        for transition in transitions:
+            current_state, symbol, next_state = transition
+            key = (current_state, symbol)  # Use a tuple (current_state, symbol) as the key
+            next_state_index = states.index(next_state)  # Find the index of the next state
+            self.transition_table[key] = next_state_index
 
         
         for i in range(self.num_transitions):
@@ -65,7 +68,10 @@ class DFA:
             epsilon_closure_set.add(current_state)
 
             # Chequear las transiciones epsilon para el estado actual
-            epsilon_transitions = self.transition_table.get(str(self.states_dict[current_state]) + str(self.alphabet_dict['ε']), [])
+            epsilon_symbol_index = str(self.alphabet_dict['ε'])
+            epsilon_transitions = self.transition_table.get(str(current_state) + epsilon_symbol_index, [])
+
+
 
             # Añadir el estado si no está aún en el set
             for next_state in epsilon_transitions:
@@ -74,91 +80,96 @@ class DFA:
 
         return epsilon_closure_set
     
-       
+    def create_new_state(self, state_set):
+        """
+        Create a new state in the DFA for the given set of NFA states.
+        """
+        # Assign a unique name or identifier to the new state
+        new_state = "q" + str(len(self.states))
         
-
-
+        # Add the new state to the set of states
+        self.states.append(new_state)
         
-
-
-
-
-
-
-    def graphing(self, nfa):
-        #graficando el AFD
-        nfa.graph = Digraph()
-        for i in nfa.getStates():
-            if (i not in [nfa.stateS.number, nfa.stateE.number]):
-                nfa.graph.attr('node', shape='circle')
-                nfa.graph.node(str(i))
-            elif i == nfa.stateE.number:
-                nfa.graph.attr('node', shape='doublecircle')
-                nfa.graph.node(str(i))
-            else:
-                nfa.graph.attr('node', shape='circle')
-                nfa.graph.node(str(i))
-        nfa.graph.attr('node', shape = 'none')
-        nfa.graph.node('')
-        nfa.graph.edge('', str(nfa.stateS.number))   
-
-        for i in nfa.getTransitions():
-            nfa.graph.edge(i[0], i[2], label = ('ε', i[1])[i[1] != 'ε'])
-        nfa.graph.render('nfa', view = True)
-
-        #graficando el AFD
-        dfa = Digraph()
-        epsilon_closure = dict()
-        for i in nfa.stateS.states:
-            epsilon_closure[i] = list(self.epsilonClosure(i))
+        # Update the state dictionary
+        self.states_dict[new_state] = len(self.states) - 1
         
-        dfa_stack = list()
-        dfa_stack.append(epsilon_closure[nfa.stateS.number])
+        # Return the name of the new state
+        return new_state
 
-        if (nfa.isFinalStateDFA(dfa_stack[0])):
-            dfa.attr('node', shape = 'doublecircle')
-        else:
-            dfa.attr('node', shape = 'circle')
-        dfa.node(nfa.stateName(dfa_stack[0]))
+    def compute_transition(self, state_set, input_symbol):
+        """
+        Compute the next state set for a given input symbol and state set.
+        """
+        next_state_set = set()
 
-        dfa.attr('node', shape = 'none')
-        dfa.node('')
-        dfa.edge('', nfa.stateName(dfa_stack[0]))
+        for state in state_set:
+            transitions = self.transition_table.get(str(self.states_dict[state]) + str(self.alphabet_dict[input_symbol]), [])
+            next_state_set.update(transitions)
 
-        dfa_states = list()
-        dfa_states.append(epsilon_closure[nfa.start])
+        # Take epsilon closures for each state in the computed set
+        result_set = set()
+        for state in next_state_set:
+            result_set.update(self.epsilon_closure(state))
 
-        while(len(dfa_stack) > 0):
-            curr_state = dfa_stack.pop(0)
-            for all in range (nfa.num_alphabet - 1):
-                from_closure = set()
-                for i in curr_state:
-                    from_closure.update(set(nfa.transition_table[str(i)+str(all)]))
-                if (len(from_closure) > 0):
-                    to_state = set()
-                    for i in list(from_closure):
-                        to_state.update(set(epsilon_closure[nfa.states[i]]))
-                    if list(to_state) not in dfa_states:
-                        dfa_stack.append(list(to_state))
-                        dfa_states.append(list(to_state))
+        return result_set
+    
+    def subset_construction(self):
+        """
+        Apply the subset construction algorithm to convert NFA to DFA.
+        """
+        # Initialize the DFA with the epsilon closure of the start state
+        initial_state_set = self.epsilon_closure(self.start)
+        initial_dfa_state = self.create_new_state(initial_state_set)
 
-                        if (nfa.isFinalStateDFA(list(to_state))):
-                            dfa.attr('node', shape = 'doublecircle')
-                        else:
-                            dfa.attr('node', shape = 'circle')
-                        dfa.node(nfa.stateName(list(to_state)))
-                    
-                    dfa.edge((nfa.stateName(curr_state)), nfa.stateName(list(to_state)), label=nfa.alphabet[all])
+        # Initialize the queue for processing new states
+        state_queue = [(initial_dfa_state, initial_state_set)]
 
-                else:
-                    if (-1) not in dfa_states:
-                        dfa.attr('node', shape = 'circle')
-                        dfa.node('e')
+        while state_queue:
+            current_dfa_state, current_state_set = state_queue.pop(0)
 
-                        for a in range (nfa.num_alphabet - 1):
-                            dfa.edge('e', 'e', nfa.alphabet[a])
-                        
-                        dfa_states.append(-1)
+            for input_symbol in self.alphabet:
+                if input_symbol == 'ε':
+                    continue
 
-                    dfa.edge(nfa.stateName(curr_state), 'e', label = nfa.alphabet[all])
-        dfa.render('dfa', view = True)     
+                next_state_set = self.compute_transition(current_state_set, input_symbol)
+
+                if not next_state_set:
+                    continue
+
+                if next_state_set not in state_queue:
+                    # Create a new state in the DFA for the computed set of NFA states
+                    new_dfa_state = self.create_new_state(next_state_set)
+                    state_queue.append((new_dfa_state, next_state_set))
+
+                # Add a transition from the current DFA state to the new DFA state
+                self.transition_table[str(self.states_dict[current_dfa_state]) + str(self.alphabet_dict[input_symbol])] = self.states_dict[new_dfa_state]
+
+
+    def generate_dot_file(self, filename='dfa_graph'):
+        """
+        Generate a DOT file representing the DFA.
+        """
+        dot = Digraph()
+
+        # Add states
+        for state in self.states:
+            dot.node(state, shape='circle')
+            if state in self.final_states:
+                dot.node(state, shape='doublecircle')
+
+        # Add transitions
+        for state in self.states:
+            for symbol in self.alphabet:
+                if symbol == 'ε':
+                    continue
+                next_state_index = self.transition_table.get(str(self.states_dict[state]) + str(self.alphabet_dict[symbol]), None)
+                print(next_state_index)
+                if next_state_index is not None:
+                    next_state = next_state_index  # Use next_state_index to get the name of the next state
+                    dot.edge(state, next_state, label=symbol)
+
+
+        # Save DOT file
+        dot.render(filename, format='png', cleanup=True)   
+
+

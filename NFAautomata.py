@@ -191,9 +191,11 @@ class NFA:
                     transitions.append([state_name, character, next_state_name])
 
                     # añadir el caracter si no está en el alfabeto excluyendo épsilon
+                    
                     if character is not None:
                         alphabet_set.add(character)
-
+                        
+                    
         # Convert the alphabet set to a sorted list
         alphabet = sorted(list(alphabet_set))
 

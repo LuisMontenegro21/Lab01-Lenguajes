@@ -4,7 +4,9 @@ from DFAautomata import *
 def buildUsingSubset(nfa):
     #print(*nfa.toNFAParams())
     dfa = DFA(*nfa.toNFAParams())
-    dfa.subsetConstruction(nfa.toNFAParams())
+    dfa.subset_construction()
+    dfa.generate_dot_file('dfa')
+
     return dfa
     
 
