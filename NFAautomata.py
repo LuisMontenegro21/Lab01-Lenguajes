@@ -175,12 +175,13 @@ class NFA:
         return dot  
     
     def toNFAParams(self):
-        num_states = NFAState.count  # Numero de estados
-        states = [str(i) for i in range(1, num_states + 1)]  # Lista de estados
-        alphabet_set = set()  # Set del alfabeto
+        num_states = NFAState.count  # Number of states
+        states = [str(i) for i in range(1, num_states + 1)]  # List of states
+        alphabet_set = set()  # Set of the alphabet
 
         transitions = []
 
+        
         # Iterar para construir las transiciones y tomar el alfabeto
         for state in NFAState.states:
             state_name = str(state.number)
@@ -189,19 +190,18 @@ class NFA:
                     next_state_name = str(next_state.number)
                     transitions.append([state_name, character, next_state_name])
 
-                    # Añadir los caracteres al alfabeto, exceptuando None (epsilom)
+                    # añadir el caracter si no está en el alfabeto excluyendo épsilon
                     if character is not None:
                         alphabet_set.add(character)
 
-        # Convertir el alfabeto a una lista sorteada
+        # Convert the alphabet set to a sorted list
         alphabet = sorted(list(alphabet_set))
 
-        start = '1'  # Estado inicial
-        num_final = 1  # Numero de estados finales (arreglar para que puedan ser varios)
-        final_states = [str(num_states)]  # Lista de estados finales como strings
-        num_transitions = len(transitions)  # Numero de transiciones
+        start = str(self.stateS.number)  # Starting state
+        final_states = [str(state.number) for state in NFAState.states if state.final]  # List of final states as strings
+        num_transitions = len(transitions)  # Number of transitions
 
-        return num_states, states, len(alphabet), alphabet, start, num_final, final_states, num_transitions, transitions
+        return num_states, states, len(alphabet), alphabet, start, len(final_states), final_states, num_transitions, transitions
 
 
 

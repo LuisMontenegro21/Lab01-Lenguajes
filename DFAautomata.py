@@ -51,34 +51,39 @@ class DFA:
             else:
                 self.transition_table[str(self.states_dict[current_state]) + str(self.alphabet_dict[input_symbol])].append(self.states_dict[next_state])
     
-    def epsilonClosure(self, state):
-        #Se crea un diccionario para ver si el estado ya ha sido visitado
-        closure = dict()
-        closure[self.states_dict[state]] = 0
-        closure_stack = [self.states_dict[state]]
+    def epsilon_closure(self, state):
+        # DSF para la epsilon closure
+        epsilon_closure_set = set()
+
+        # Stack para el DFS
+        stack = [state]
+
+        while stack:
+            current_state = stack.pop()
+
+            # Incluir el estado actual 
+            epsilon_closure_set.add(current_state)
+
+            # Chequear las transiciones epsilon para el estado actual
+            epsilon_transitions = self.transition_table.get(str(self.states_dict[current_state]) + str(self.alphabet_dict['ε']), [])
+
+            # Añadir el estado si no está aún en el set
+            for next_state in epsilon_transitions:
+                if next_state not in epsilon_closure_set:
+                    stack.append(next_state)
+
+        return epsilon_closure_set
+    
+       
         
-        while(len(closure_stack) > 0):
-            curr = closure_stack.pop(0)
-            for i in self.transition_table[str(curr)+str(self.alphabet_dict['ε'])]:
-                if i not in closure.keys():
-                    closure[i] = 0
-                    closure_stack.append(i)
-            closure[curr] = 1
-        return closure.keys()
-    
-    # ver el nombre del estado en que se está
-    def stateName(self, state_list):
-        name = ''
-        for i in state_list:
-            name += self.states[i]
-        return name
-    
-    # ver si el estado en el que está es estado final
-    def isFinalStateDFA(self, state_list):
-        for i in state_list:
-            if i == self.stateE.number:
-                return True
-        return False
+
+
+        
+
+
+
+
+
 
     def graphing(self, nfa):
         #graficando el AFD
@@ -105,7 +110,7 @@ class DFA:
         dfa = Digraph()
         epsilon_closure = dict()
         for i in nfa.stateS.states:
-            epsilon_closure[i] = list(nfa.epsilonClosure(i))
+            epsilon_closure[i] = list(self.epsilonClosure(i))
         
         dfa_stack = list()
         dfa_stack.append(epsilon_closure[nfa.stateS.number])
