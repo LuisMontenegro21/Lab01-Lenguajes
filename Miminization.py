@@ -1,6 +1,6 @@
 # Archivo para la reducción de un AFD
 from graphviz import Digraph
-import re 
+
 
 class DFA_min:
 
@@ -33,6 +33,7 @@ class DFA_min:
 
             while worklist:
                 P = worklist.pop()
+                
                 for symbol in self.alphabet:
                     
                     state_map = {}

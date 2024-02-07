@@ -21,7 +21,7 @@ def shuntingYard(expression):
 
         # se recorre la expresión
         for token in expression:
-            # si el token se encuentra 0-9 o a-z se manda a la cola
+            # si el token se encuentra 0-9 o a-z se manda a la cola (no se considera otros símbolos)
             if token.isalnum():  
                 output.append(token)
             elif isOperator(token):
@@ -174,36 +174,44 @@ class NFA:
         # Devolver el gráfico del AFN
         return dot  
     
-    def toNFAParams(self):
-        num_states = NFAState.count  # Number of states
-        states = [str(i) for i in range(1, num_states + 1)]  # List of states
-        alphabet_set = set()  # Set of the alphabet
+    def getNFAParams(self):
+        num_states = NFAState.count  # Número de estados
+        states = [str(i) for i in range(1, num_states + 1)]  # Lista de los identificadores de los estados
+        alphabet_set = set()  # set de alfabeto
 
         transitions = []
 
-        
-        # Iterar para construir las transiciones y tomar el alfabeto
+        # Iterar para construir y obtener el alfabeto y transiciones
         for state in NFAState.states:
             state_name = str(state.number)
             for character, next_states in state.changes.items():
+                
                 for next_state in next_states:
-                    next_state_name = str(next_state.number)
-                    transitions.append([state_name, character, next_state_name])
+                    transitions.append([state_name, character, str(next_state.number)])
 
-                    # añadir el caracter si no está en el alfabeto excluyendo épsilon
-                    
-                    if character is not None:
-                        alphabet_set.add(character)
-                        
-                    
-        # Convert the alphabet set to a sorted list
-        alphabet = sorted(list(alphabet_set))
+                if character != 'ε' and character is not None:  
+                    alphabet_set.add(character)
+                
 
-        start = str(self.stateS.number)  # Starting state
-        final_states = [str(state.number) for state in NFAState.states if state.final]  # List of final states as strings
-        num_transitions = len(transitions)  # Number of transitions
+        alphabet = sorted(alphabet_set)  # Lista sorteada del alfabeto
 
-        return num_states, states, len(alphabet), alphabet, start, len(final_states), final_states, num_transitions, transitions
+        start = str(self.stateS.number)  # Estado inicial
+        final_states = [str(state.number) for state in NFAState.states if state.final]  # Lista de estados finales
+        num_transitions = len(transitions)  # Número de transiciones
+
+        # Retornar un diccionario
+        return {
+            'num_states': num_states,
+            'states': states,
+            'num_alphabet': len(alphabet),
+            'alphabet': alphabet,
+            'start': start,
+            'num_final': len(final_states),
+            'final_states': final_states,
+            'num_transitions': num_transitions,
+            'transitions': transitions
+        }
+
 
 
 

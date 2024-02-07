@@ -2,10 +2,9 @@
 from DFAautomata import *
 
 def buildUsingSubset(nfa):
-    #print(*nfa.toNFAParams())
-    dfa = DFA(*nfa.toNFAParams())
-    dfa.subset_construction()
-    dfa.generate_dot_file('dfa')
+    print(nfa.getNFAParams())
+    dfa = DFA(nfa.getNFAParams())
+    print(dfa.constructDFA())
 
     return dfa
     
