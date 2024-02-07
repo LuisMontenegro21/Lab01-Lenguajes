@@ -50,34 +50,50 @@ class DFA:
 
     def constructDFA(self):
         
-        # Initialize with the epsilon closure of the NFA's start state
-        initial_state = self.epsilonClosure({self.start})
-        dfa_states = {frozenset(initial_state): 'q0'}  # Maps sets of NFA states to DFA state names
-        worklist = [initial_state]  # States to be processed
+        self.start = str(self.start)
+        self.final_states = set(map(str, self.final_states))
+        
+        # Empezar la cerradura épsilon con el estado inicial
+        initial_closure = self.epsilonClosure({self.start})
+        dfa_states = {frozenset(initial_closure): 'q0'}  # MMapear los estados del AFN a AFD
+        worklist = [frozenset(initial_closure)]  # estados a ser procesados
         dfa_transitions = []
         dfa_final_states = set()
 
+
+        state_name_mapping = {'q0': frozenset(initial_closure)}
+        counter = 1
+
         while worklist:
-            current = worklist.pop()
+            current = worklist.pop(0)
             for symbol in self.alphabet:
                 if symbol != 'ε': 
                     # Moverse en los estados y aplicar la cerradura epsilon
-                    next = self.epsilonClosure(self.move(current, symbol))
-                    if not frozenset(next) in dfa_states:
-                        # New DFA state discovered
-                        dfa_states[frozenset(next)] = f'q{len(dfa_states)}'
-                        worklist.append(next)
-                    # Record the transition
-                    dfa_transitions.append((dfa_states[frozenset(current)], symbol, dfa_states[frozenset(next)]))
-                    # Check if any of the NFA final states are in the new DFA state
-                    if any(state in self.final_states for state in next):
-                        dfa_final_states.add(dfa_states[frozenset(next)])
+                    next_state = frozenset(self.epsilonClosure(self.move(current, symbol)))
+
+                    if next_state not in state_name_mapping.values():
+                        # nuevo estado del AFD descubierto
+                        state_name_mapping[f'q{counter}'] = next_state
+                        dfa_states[next_state] = f'q{counter}'
+                        counter += 1
+                        worklist.append(next_state)
+
+                    from_state = [name for name, states in state_name_mapping.items() if states == current][0]
+                    to_state = [name for name, states in state_name_mapping.items() if states == next_state][0]
+                    dfa_transitions.append((from_state, symbol, to_state))
+                
+   
+
+                    # When checking for final states in the DFA construction loop
+                    if next_state & self.final_states:
+                        dfa_final_states.add(to_state)
+
 
         
         return {
             'states': list(dfa_states.values()),
             'transitions': dfa_transitions,
-            'start': dfa_states[frozenset(initial_state)],
+            'start': dfa_states[frozenset(initial_closure)],
             'final_states': list(dfa_final_states),
         }
 

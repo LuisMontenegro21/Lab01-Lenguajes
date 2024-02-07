@@ -96,6 +96,10 @@ class NFAState:
 
 
 class NFA:
+    start_state = 0
+    final_state = []
+
+
     @staticmethod
     def getCharacter(character):
         # Crear un AFN con un solo carácter
@@ -121,7 +125,19 @@ class NFA:
                     transitions.append([state_name, character, next_state_name])
 
         return transitions
+    
+    def setStartingState(self, state):
+        self.start_state = state
 
+    def setFinalState(self, state):
+        if state not in self.final_state:
+            self.final_state.append(state)
+
+    def getStartingState(self):
+        return self.start_state
+
+    def getFinalState(self):
+        return self.final_state
 
     def __init__(self, start=None, end=None):
         # Constructor de la clase Afn para crear un AFN
@@ -150,14 +166,16 @@ class NFA:
             thisS = NewS.pop()  # Tomar un estado de la lista de estados nuevos
             for character, nextSs in thisS.changes.items():
                 for nextS in nextSs:
-                    # Agregar nodos al gráfico
+                    # Agregar nodos al gráfico para estado inicial
                     if thisS == self.stateS:
-                        dot.node(str(id(thisS)), label=f"Inicio", shape="circle")
+                        dot.node(str(id(thisS)), label=str(thisS.number), shape="circle")
+                        self.setStartingState(thisS.number)
                     else:
                         dot.node(str(id(thisS)), label=str(thisS.number), shape="circle")
-
+                    # Agregar nodo si el estado es final
                     if nextS.final and nextS == self.stateE:
-                        dot.node(str(id(nextS)), label=f"Final", shape="doublecircle")
+                        dot.node(str(id(nextS)), label=str(nextS.number), shape="doublecircle")
+                        self.setFinalState(nextS.number)
                     else:
                         dot.node(str(id(nextS)), label=str(nextS.number), shape="circle")
 
@@ -195,8 +213,8 @@ class NFA:
 
         alphabet = sorted(alphabet_set)  # Lista sorteada del alfabeto
 
-        start = str(self.stateS.number)  # Estado inicial
-        final_states = [str(state.number) for state in NFAState.states if state.final]  # Lista de estados finales
+        start = self.getStartingState()
+        final_states = self.getFinalState()
         num_transitions = len(transitions)  # Número de transiciones
 
         # Retornar un diccionario
