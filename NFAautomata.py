@@ -219,15 +219,15 @@ class NFA:
 
         # Retornar un diccionario
         return {
-            'num_states': num_states,
-            'states': states,
-            'num_alphabet': len(alphabet),
-            'alphabet': alphabet,
-            'start': start,
-            'num_final': len(final_states),
-            'final_states': final_states,
-            'num_transitions': num_transitions,
-            'transitions': transitions
+            #'num_states': num_states, #int
+            'states': states, #str
+            #'num_alphabet': len(alphabet), 
+            'alphabet': alphabet + [None], #str
+            'start': str(start), #str 
+            #'num_final': len(final_states),
+            'final_states': [str(i) for i in final_states], #str
+            #'num_transitions': num_transitions,
+            'transitions': transitions #str
         }
 
 

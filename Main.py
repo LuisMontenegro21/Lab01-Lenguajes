@@ -21,7 +21,7 @@ def main():
     print("AFN-ε: " + str(runNFA(nfa, w)))
 
     # Para graficar y testear el algoritmo de subconjuntos para AFD
-    dfa = buildUsingSubset(nfa)
+    dfa = buildUsingSubset(nfa,w)
     
 
     # Para graficar y testear el AFD minimizado 

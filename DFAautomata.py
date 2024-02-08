@@ -1,3 +1,4 @@
+# Referencias: Compilers: Principles, Techniques, and Tools (Pearson Education, Inc) 1986
 
 #----------------------------------------
 # Clases del AFD
@@ -10,95 +11,133 @@ from graphviz import Digraph
 class DFA:
     # tomar los parametros para construir el DFA con el método de subconjuntos
     def __init__(self, params):
-        self.num_states = params['num_states']
-        self.states = params['states']
-        self.num_alphabet = params['num_alphabet']
-        self.alphabet = params['alphabet']
-        self.start = params['start']
-        self.num_final = params['num_final']
-        self.final_states = params['final_states']
-        self.num_transitions = params['num_transitions']
-        self.transitions = params['transitions']
+        #self.num_states = params['num_states']
+        self.nfa_states = params['states']
+        #self.num_alphabet = params['num_alphabet']
+        self.nfa_alphabet = params['alphabet']
+        self.nfa_start = params['start']
+        #self.num_final = params['num_final']
+        self.nfa_final_states = params['final_states']
+        #self.num_transitions = params['num_transitions']
+        self.nfa_transitions = params['transitions']
 
     # para realizar la transición épsilon  
-    def epsilonClosure(self, states):
-        # crear la cerradura y el stack
-        closure = set(states)
-        stack = list(states)
-        
+    def epsilonClosure(self, state, transitions):
+        closure = {state}
+        stack = [state]
         while stack:
-            state = stack.pop()
-            # para cada transicion se ve si tiene epsilon como siguiente
-            for transition in self.transitions:
-                if transition[0] == state and transition[1] == 'ε':
-                    next_state = transition[2]
-                    
-                    # si el estado aún no está, agregarlo
-                    if next_state not in closure:
-                        closure.add(next_state)
-                        stack.append(next_state)
+            t = stack.pop()
+            for from_state, symbol, to_state in transitions:
+                if from_state == t and symbol == None and to_state not in closure:
+                    closure.add(to_state)
+                    stack.append(to_state)
         return closure
     
-    # para encontrar a qué estados se puede acceder desde el estado actual
-    def move(self, states, symbol):
-        next_states = set()
-        for transition in self.transitions:
-            if transition[0] in states and transition[1] == symbol:
-                next_states.add(transition[2])
-        # retorna un conjunto de estados accesibles desde el estado actual
-        return next_states
+    # para encontrar a qué estados se puede acceder desde el estado actual 
+    # empleado para la transición en el método de subconjuntos
+    def move(self, states, symbol, transitions):
+        result = set()
+        for state in states:
+            for from_state, input_symbol, to_state in transitions:
+                if from_state in states and input_symbol == symbol:
+                    result.add(to_state)
+        return result
 
-    def constructDFA(self):
-        
-        self.start = str(self.start)
-        self.final_states = set(map(str, self.final_states))
-        
-        # Empezar la cerradura épsilon con el estado inicial
-        initial_closure = self.epsilonClosure({self.start})
-        dfa_states = {frozenset(initial_closure): 'q0'}  # MMapear los estados del AFN a AFD
-        worklist = [frozenset(initial_closure)]  # estados a ser procesados
+    # para la construccion del subset 
+    def subsetConstr(self):
+        # Se comienza con la cerradura inicial del estado inicial y las transiciones asociadas
+        initial_closure = self.epsilonClosure(self.nfa_start, self.nfa_transitions)
+        unmarked_states = [frozenset(initial_closure)]
+        dfa_states = [initial_closure]
         dfa_transitions = []
-        dfa_final_states = set()
+        state_map = {frozenset(initial_closure): str(len(dfa_states))}  # Mapear los frozensets a identificadores de strings
 
+        while unmarked_states:
+            current_frozenset = unmarked_states.pop(0)  # Se va chequeando en fila para mantener orden
+            current_state = state_map[current_frozenset]
 
-        state_name_mapping = {'q0': frozenset(initial_closure)}
-        counter = 1
-
-        while worklist:
-            current = worklist.pop(0)
-            for symbol in self.alphabet:
-                if symbol != 'ε': 
-                    # Moverse en los estados y aplicar la cerradura epsilon
-                    next_state = frozenset(self.epsilonClosure(self.move(current, symbol)))
-
-                    if next_state not in state_name_mapping.values():
-                        # nuevo estado del AFD descubierto
-                        state_name_mapping[f'q{counter}'] = next_state
-                        dfa_states[next_state] = f'q{counter}'
-                        counter += 1
-                        worklist.append(next_state)
-
-                    from_state = [name for name, states in state_name_mapping.items() if states == current][0]
-                    to_state = [name for name, states in state_name_mapping.items() if states == next_state][0]
-                    dfa_transitions.append((from_state, symbol, to_state))
+            for symbol in filter(lambda x: x is not None, self.nfa_alphabet):  # Se excluye lo que es epsilon
+                move_result = self.move(current_frozenset, symbol, self.nfa_transitions)
+                if not move_result:
+                    continue
+                # se da un resultado de la cerradura para cada recorrido
+                closure_result = frozenset().union(*[self.epsilonClosure(s, self.nfa_transitions) for s in move_result])
                 
-   
+                # si el resultado de la cerradura aún no está en los estados del AFN, se agrega
+                if closure_result not in dfa_states:
+                    dfa_states.append(closure_result)
+                    unmarked_states.append(closure_result)
+                    state_map[closure_result] = str(len(dfa_states))  # NNuevo identificador de estado
 
-                    # When checking for final states in the DFA construction loop
-                    if next_state & self.final_states:
-                        dfa_final_states.add(to_state)
+                # se asigna que el estado de donde viene es el actual
+                from_state = current_state
+                # se asigna al estado al que va el resultado de la cerradura épsilon mapeada
+                to_state = state_map[closure_result]
+                # se agrega las transiciones con el formado ['from', 'symbol', 'to_state'], de donde viene y el símbolo con el que va al siguiente
+                dfa_transitions.append([from_state, symbol, to_state])
+
+        # se agrega los estados finales en los sets donde se hallen los estados de intersección de los finales del nfa y los estados del dfa
+        final_states = [state_map[frozenset(state)] for state in dfa_states if set(state).intersection(set(self.nfa_final_states))]
+
+        return {
+            'states': [state_map[frozenset(state)] for state in dfa_states],
+            'transitions': dfa_transitions,
+            'start': state_map[frozenset(initial_closure)],
+            'final_states': final_states
+        }
+    
+    def isAccepted(self, dfa, string):
+
+        # Empezar en el estado inicial
+        current_state = dfa['start']
+        
+        # Definir una función para moverse al siguiente estado dependiendo del caracter 
+        def move(current_state, character):
+            for transition in dfa['transitions']:
+                if transition[0] == current_state and transition[1] == character:
+                    return transition[2]
+            return None  # Return None if there is no valid transition
+        
+        # Iterar sobre los caracteres de la cadena
+        for character in string:
+            next_state = move(current_state, character)
+            if next_state is None:
+                return "No"  # Si no existe una transición válida a un siguiente estado, retornar que no
+            current_state = next_state
+        
+        # Chequear si al final el estado en el que estamos es de aceptación (final)
+        if current_state in dfa['final_states']:
+            return "Sí"
+        else:
+            return "No"
+
+    # para visualizar el AFD
+    def visualize(self, dfa):
+        dot = Digraph()
+        
+        # Añadir estados
+        for state in dfa['states']:
+            if state in dfa['final_states']:
+                # Marcar los estados finales con un circulo doble
+                dot.node(state, state, shape='doublecircle')
+            else:
+                dot.node(state, state)
+        
+        # Darle nombre a los estados
+        dot.node('', label = '' , shape='none')
+        dot.edge('', dfa['start'])
+        
+        # Add transitions
+        for from_state, symbol, to_state in dfa['transitions']:
+            dot.edge(from_state, to_state, label=symbol)
+        
+        # renderizar
+        dot.render('dfa.pdf', view=True, cleanup=True)
+
+        
+
 
 
         
-        return {
-            'states': list(dfa_states.values()),
-            'transitions': dfa_transitions,
-            'start': dfa_states[frozenset(initial_closure)],
-            'final_states': list(dfa_final_states),
-        }
-
-    
-
-    
 
 
