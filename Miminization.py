@@ -20,8 +20,7 @@ class DFA_min:
 
             while worklist:
                 A = worklist.pop()
-                
-                # por cada caracter en el alfabeto, 
+
                 for c in self.alphabet:
                     X = set()
                     for from_state, symbol in self.transitions:
@@ -29,7 +28,6 @@ class DFA_min:
                             X.add(from_state)
 
                     if X:
-                        #new_partitions = set()
                         for Y in list(partitions):
                             intersect = X.intersection(Y)
                             difference = Y - X
@@ -39,16 +37,16 @@ class DFA_min:
                                 partitions.add(frozenset(difference))
                                 if Y in worklist:
                                     worklist.remove(Y)
-                                    worklist.add(frozenset(intersect))
-                                    worklist.add(frozenset(difference))
-                                else:
-                                    worklist.add(frozenset(intersect) if len(intersect) <= len(difference) else frozenset(difference))
-                        
+                                worklist.add(frozenset(intersect))
+                                worklist.add(frozenset(difference))
+                                break
 
-            # Construir la nueva tabla de transiicones
+            # Construct the new transition table
             new_transitions = {}
             state_representatives = {}
             for state_set in partitions:
+                if not state_set:  # Check to prevent attempting to get a representative from an empty set
+                    continue
                 representative = next(iter(state_set))
                 state_representatives[representative] = state_set
                 for state in state_set:
@@ -60,14 +58,17 @@ class DFA_min:
                                     new_transitions[(representative, symbol)] = next(iter(to_state_set))
                                     break
 
-            # Determinar los nuevos estados finales e iniciales
+            # Determine the new start and final states
             new_start_state = None
             new_final_states = set()
             for state_set in partitions:
+                if not state_set:  # Check to prevent attempting to get a representative from an empty set
+                    continue
                 if self.start in state_set:
                     new_start_state = next(iter(state_set))
                 if self.final_states.intersection(state_set):
                     new_final_states.add(next(iter(state_set)))
+
 
             return {
                 'states': list(state_representatives.keys()),
