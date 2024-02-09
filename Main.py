@@ -1,7 +1,8 @@
 #Archivo Python cuya función es concretar la ejecución del programa
-from Thompson import buildUsingThompson, runNFA
+from Thompson import buildUsingThompson
 from Subset import buildUsingSubset
-from Miminization import DFA_min
+from DirectConst import buildUsingDirectConstr
+from Miminization import buildUsingMinimization
 
 
 def main():
@@ -17,14 +18,17 @@ def main():
     w = str(input())
 
     # Para graficar y testear el algoritmo de Thompson para AFN
-    nfa = buildUsingThompson(regex)
-    print("AFN-ε: " + str(runNFA(nfa, w)))
-
+    nfa = buildUsingThompson(regex,w)
+    
     # Para graficar y testear el algoritmo de subconjuntos para AFD
     dfa = buildUsingSubset(nfa,w)
-    
 
-    # Para graficar y testear el AFD minimizado 
+    dfa_min = buildUsingMinimization(dfa)
+    
+    #dfa_dir = buildUsingDirectConstr(w)
+
+    # Para graficar y testear el AFD minimizado
+    dfa_min = None 
 
 if __name__ == "__main__":
     main()

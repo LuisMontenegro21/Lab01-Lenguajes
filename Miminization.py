@@ -4,74 +4,108 @@ from graphviz import Digraph
 
 class DFA_min:
 
-    def __init__(self, states, num_states, num_alphabet, alphabet, transitions, start_state, accept_states):
-        self.states = states
-        self.num_states = num_states
-        self.alphabet = alphabet
-        self.transitions = transitions
-        self.start_state = start_state
-        self.accept_states = accept_states
-        self.num_alphabet = num_alphabet
+    def __init__(self, params):
+        self.states = set(params['states'])
+        self.transitions = {tuple(transition[:2]): transition[2] for transition in params['transitions']}
+        self.start = params['start']
+        self.final_states = set(params['final_states'])
+        self.alphabet = set(symbol for x , symbol in self.transitions.keys() if symbol is not None)
 
-        self.states_dict = dict()
-        for i in range (self.num_states):
-            self.states_dict[self.states[i]] = i
-        self.alphabet_dict = dict()
-        for i in range (self.num_alphabet):
-            self.alphabet_dict[self.alphabet[i]] = i
     
     
     def minimize(self):
         def hopcroft():
-            dfa_min =  Digraph()
-            accepting_states = self.accept_states
-            non_accepting_states = set(self.states) - accepting_states
-            equivalence_classes = [accepting_states, non_accepting_states]
-
-            
-            worklist = [accepting_states, non_accepting_states]
+            partitions = {frozenset(self.final_states), frozenset(self.states - self.final_states)}
+            worklist = {frozenset(self.final_states), frozenset(self.states - self.final_states)}
 
             while worklist:
-                P = worklist.pop()
+                A = worklist.pop()
                 
-                for symbol in self.alphabet:
-                    
-                    state_map = {}
-                    for state in P:
-                        next_state = self.transitions.get((state, symbol), None)
-                        if next_state is not None:
-                            if next_state in state_map:
-                                state_map[next_state].append(state)
-                            else:
-                                state_map[next_state] = [state]
+                # por cada caracter en el alfabeto, 
+                for c in self.alphabet:
+                    X = set()
+                    for from_state, symbol in self.transitions:
+                        if symbol == c and self.transitions[(from_state, symbol)] in A:
+                            X.add(from_state)
 
-                    
-                    new_equivalence_classes = list(state_map.values())
-                    for new_class in new_equivalence_classes:
-                        if len(new_class) > 1:
-                            equivalence_classes.remove(P)
-                            equivalence_classes.extend(new_equivalence_classes)
-                            worklist.extend(new_equivalence_classes)
-                            break
+                    if X:
+                        #new_partitions = set()
+                        for Y in list(partitions):
+                            intersect = X.intersection(Y)
+                            difference = Y - X
+                            if intersect and difference:
+                                partitions.remove(Y)
+                                partitions.add(frozenset(intersect))
+                                partitions.add(frozenset(difference))
+                                if Y in worklist:
+                                    worklist.remove(Y)
+                                    worklist.add(frozenset(intersect))
+                                    worklist.add(frozenset(difference))
+                                else:
+                                    worklist.add(frozenset(intersect) if len(intersect) <= len(difference) else frozenset(difference))
+                        
 
-            
-            simplified_states = [i for i, eq_class in enumerate(equivalence_classes)]
-            simplified_transitions = {}
-            simplified_start_state = simplified_states[equivalence_classes.index(set([self.start_state]))]
-            simplified_accept_states = {i for i, eq_class in enumerate(equivalence_classes) if any(state in accepting_states for state in eq_class)}
-
-            for i, eq_class in enumerate(equivalence_classes):
-                for state in eq_class:
+            # Construir la nueva tabla de transiicones
+            new_transitions = {}
+            state_representatives = {}
+            for state_set in partitions:
+                representative = next(iter(state_set))
+                state_representatives[representative] = state_set
+                for state in state_set:
                     for symbol in self.alphabet:
-                        next_state = self.transitions.get((state, symbol), None)
-                        if next_state is not None:
-                            simplified_transitions[(i, symbol)] = simplified_states[equivalence_classes.index(set([next_state]))]
+                        if (state, symbol) in self.transitions:
+                            to_state = self.transitions[(state, symbol)]
+                            for to_state_set in partitions:
+                                if to_state in to_state_set:
+                                    new_transitions[(representative, symbol)] = next(iter(to_state_set))
+                                    break
 
-            for state in self.states:
-                dfa_min.node(state)
-            for (source, symbol), target in self.transitions.items():
-                dfa_min.edge(source,target,label = symbol)
-            dfa_min.render('minimized dfa', view = True)
-            return DFA_min(simplified_states, len(simplified_states), self.num_alphabet, self.alphabet, simplified_transitions, simplified_start_state, simplified_accept_states)
+            # Determinar los nuevos estados finales e iniciales
+            new_start_state = None
+            new_final_states = set()
+            for state_set in partitions:
+                if self.start in state_set:
+                    new_start_state = next(iter(state_set))
+                if self.final_states.intersection(state_set):
+                    new_final_states.add(next(iter(state_set)))
 
+            return {
+                'states': list(state_representatives.keys()),
+                'transitions': new_transitions,
+                'start': new_start_state,
+                'final_states': list(new_final_states)
+            }
         return hopcroft()
+    
+
+    def visualize(self):
+        dot = Digraph()
+
+        # Add states
+        for state in self.states:
+            if state in self.final_states:
+                # Mark final states with a double circle
+                dot.node(state, shape='doublecircle')
+            else:
+                dot.node(state)
+
+        # Mark the start state with an edge from a pseudo-node
+        dot.node('', shape='none')  # Invisible node
+        dot.edge('', self.start, label='start')
+
+        # Add transitions
+        for (from_state, symbol), to_state in self.transitions.items():
+            dot.edge(from_state, to_state, label=symbol)
+
+        # Graficar 
+        dot.render(format='pdf', view=True, cleanup=True)
+
+        #return dot
+    
+
+def buildUsingMinimization(dfa):
+    dfa_min = DFA_min(dfa)
+    minimized = dfa_min.minimize()
+    dfa_min.visualize()
+    print(minimized)
+    return minimized

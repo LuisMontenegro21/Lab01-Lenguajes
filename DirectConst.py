@@ -1,4 +1,3 @@
-# archivod dedicado a la construcción directa del autómata
-
-def buildUsingDirectConstr(nfa, w):
+# archivo dedicado a la construcción directa del autómata
+def buildUsingDirectConstr(w):
     pass

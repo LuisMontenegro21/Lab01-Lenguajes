@@ -134,12 +134,13 @@ def runNFA(nfa, afnValue):
     # Si ninguno de los estados actuales es final, la cadena es rechazada
     return "No"  
 
-
-def buildUsingThompson(regex):
+# para construir utilizando thompson
+def buildUsingThompson(regex, w):
     grapher = Grapher()
     postfix_regex = infixToPostfix(regex)
     nfa = thompson(grapher.build(postfix_regex))
     visual_nfa = nfa.diagram()
     visual_nfa.render(f'AFN', view = True, cleanup=True)
+    print("AFN-ε: " + str(runNFA(nfa, w)))
     
     return nfa
