@@ -111,9 +111,10 @@ class DFA_min:
 
         for character in w:
             next_state = None
-            for (from_state, symbol), to_state in dfa_min['transitions'].items():
-                if from_state == current_state and symbol == character:
-                    next_state = to_state
+            #si el from_state equivale al estado actual y el símbolo equivale al caracter, moverse al siguiente estado
+            for transition in dfa_min['transitions']:
+                if transition[0] == current_state and transition[1] == character:
+                    next_state = transition[2]
                     break
         
         if next_state is None:

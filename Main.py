@@ -23,12 +23,10 @@ def main():
     # Para graficar y testear el algoritmo de subconjuntos para AFD
     dfa = buildUsingSubset(nfa,w)
 
-    dfa_min = buildUsingMinimization(dfa, w)
+    #TODO fix DFA_min 
+    #dfa_min = buildUsingMinimization(dfa, w)
     
-    #dfa_dir = buildUsingDirectConstr(w)
-
-    # Para graficar y testear el AFD minimizado
-    dfa_min = None 
+    dfa_dir = buildUsingDirectConstr(regex)
 
 if __name__ == "__main__":
     main()
