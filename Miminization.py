@@ -28,26 +28,30 @@ class DFA_min:
                             X.add(from_state)
 
                     if X:
+                        new_partitions = set()
                         for Y in list(partitions):
                             intersect = X.intersection(Y)
                             difference = Y - X
                             if intersect and difference:
-                                partitions.remove(Y)
-                                partitions.add(frozenset(intersect))
-                                partitions.add(frozenset(difference))
+                                #new_partitions.remove(Y)
+                                new_partitions.add(frozenset(intersect))
+                                new_partitions.add(frozenset(difference))
                                 if Y in worklist:
                                     worklist.remove(Y)
-                                worklist.add(frozenset(intersect))
-                                worklist.add(frozenset(difference))
-                                break
+                                #worklist.add(frozenset(intersect))
+                                #worklist.add(frozenset(difference))
+                                worklist.update([frozenset(intersect), frozenset(difference)])
+                            else: 
+                                new_partitions.add(Y)
+                        partitions = new_partitions
 
-            # Construct the new transition table
+            # Construir la nueva tabla de transiciones
             new_transitions = {}
             state_representatives = {}
             for state_set in partitions:
-                if not state_set:  # Check to prevent attempting to get a representative from an empty set
+                representative = next(iter(state_set), None)
+                if representative is None:  # Saltárselo en caso esté vacío
                     continue
-                representative = next(iter(state_set))
                 state_representatives[representative] = state_set
                 for state in state_set:
                     for symbol in self.alphabet:
@@ -58,7 +62,7 @@ class DFA_min:
                                     new_transitions[(representative, symbol)] = next(iter(to_state_set))
                                     break
 
-            # Determine the new start and final states
+            # Determinar los nuevos estados inicial y finales
             new_start_state = None
             new_final_states = set()
             for state_set in partitions:
@@ -82,31 +86,49 @@ class DFA_min:
     def visualize(self):
         dot = Digraph()
 
-        # Add states
+        # Añadir estados
         for state in self.states:
             if state in self.final_states:
-                # Mark final states with a double circle
+                # Marcar los estados finales 
                 dot.node(state, shape='doublecircle')
             else:
                 dot.node(state)
 
-        # Mark the start state with an edge from a pseudo-node
-        dot.node('', shape='none')  # Invisible node
+        # Marcar el estado inicial
+        dot.node('', shape='none')  
         dot.edge('', self.start, label='start')
 
-        # Add transitions
+        # Añadir transiciones
         for (from_state, symbol), to_state in self.transitions.items():
             dot.edge(from_state, to_state, label=symbol)
 
         # Graficar 
         dot.render(format='pdf', view=True, cleanup=True)
 
-        #return dot
-    
+        
+    def isAcceptingMin(self, dfa_min, w):
+        current_state = dfa_min['start']
 
-def buildUsingMinimization(dfa):
+        for character in w:
+            next_state = None
+            for (from_state, symbol), to_state in dfa_min['transitions'].items():
+                if from_state == current_state and symbol == character:
+                    next_state = to_state
+                    break
+        
+        if next_state is None:
+            return 'No'
+        
+        current_state = next_state
+
+        return 'Sí' if current_state in dfa_min['final_states'] else 'No'
+        
+
+
+def buildUsingMinimization(dfa, w):
     dfa_min = DFA_min(dfa)
     minimized = dfa_min.minimize()
+    print("DFA_min: " + dfa_min.isAcceptingMin(minimized,w))
     dfa_min.visualize()
     print(minimized)
     return minimized
