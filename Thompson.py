@@ -1,5 +1,6 @@
 # Archivo Python que corre o emplea el algoritmo Thompson para generar un AFN (Automata Finito No-Determinista)
-from NFAautomata import NFAState, NFA, infixToPostfix
+from NFAautomata import NFAState, NFA
+from Postfix import infixToPostfix
 from Root import *
 
 

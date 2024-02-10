@@ -66,7 +66,7 @@ class DFA_min:
             new_start_state = None
             new_final_states = set()
             for state_set in partitions:
-                if not state_set:  # Check to prevent attempting to get a representative from an empty set
+                if not state_set:  # Chequear para no obtener algo de un set vacío
                     continue
                 if self.start in state_set:
                     new_start_state = next(iter(state_set))
@@ -110,17 +110,13 @@ class DFA_min:
         current_state = dfa_min['start']
 
         for character in w:
-            next_state = None
-            #si el from_state equivale al estado actual y el símbolo equivale al caracter, moverse al siguiente estado
-            for transition in dfa_min['transitions']:
-                if transition[0] == current_state and transition[1] == character:
-                    next_state = transition[2]
-                    break
+            next_state = dfa_min['transitions'].get((current_state, character))
+            
         
-        if next_state is None:
-            return 'No'
+            if next_state is None:
+                return 'No'
         
-        current_state = next_state
+            current_state = next_state
 
         return 'Sí' if current_state in dfa_min['final_states'] else 'No'
         
@@ -129,7 +125,7 @@ class DFA_min:
 def buildUsingMinimization(dfa, w):
     dfa_min = DFA_min(dfa)
     minimized = dfa_min.minimize()
-    print("DFA_min: " + dfa_min.isAcceptingMin(minimized,w))
+    print("AFD-min: " + dfa_min.isAcceptingMin(minimized,w))
     dfa_min.visualize()
     print(minimized)
     return minimized

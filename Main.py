@@ -24,9 +24,10 @@ def main():
     dfa = buildUsingSubset(nfa,w)
 
     #TODO fix DFA_min 
-    #dfa_min = buildUsingMinimization(dfa, w)
+    dfa_min = buildUsingMinimization(dfa, w)
     
-    dfa_dir = buildUsingDirectConstr(regex)
+    #TODO fix direct construct
+    #dfa_dir = buildUsingDirectConstr(regex)
 
 if __name__ == "__main__":
     main()
