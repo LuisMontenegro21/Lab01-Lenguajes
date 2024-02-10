@@ -9,69 +9,67 @@ class DFA_min:
         self.transitions = {tuple(transition[:2]): transition[2] for transition in params['transitions']}
         self.start = params['start']
         self.final_states = set(params['final_states'])
-        self.alphabet = set(symbol for x , symbol in self.transitions.keys() if symbol is not None)
+        self.alphabet = set(symbol for x , symbol in self.transitions.keys() if symbol is not None) 
 
-    
     
     def minimize(self):
         def hopcroft():
+            # se divide en dos sets, uno con los estados finales y el otro con los estados no finales
             partitions = {frozenset(self.final_states), frozenset(self.states - self.final_states)}
-            worklist = {frozenset(self.final_states), frozenset(self.states - self.final_states)}
+            # con este se va a trabajar
+            worklist = list(partitions.copy())
 
+            # vamos examinando los estados en conjunto
             while worklist:
-                A = worklist.pop()
+                A = worklist.pop(0)
 
+                # Para cada símbolo del alfabeto, se crea un conjunto X que tiene todas las transiciones con el símbolo c
+                # En resumen, X es el conjunto de estados con los que se puede llegar a A con c
                 for c in self.alphabet:
                     X = set()
                     for from_state, symbol in self.transitions:
                         if symbol == c and self.transitions[(from_state, symbol)] in A:
                             X.add(from_state)
-
+                    # si X no está vacío se itera sobre la copia de las particiones
                     if X:
-                        new_partitions = set()
-                        for Y in list(partitions):
+                        for Y in partitions.copy():
+                            # para cada partición se calcula la intersección 
                             intersect = X.intersection(Y)
                             difference = Y - X
+                             # si ambos no están vacíos se reemplaza Y por dos nuevas particiones
                             if intersect and difference:
-                                #new_partitions.remove(Y)
-                                new_partitions.add(frozenset(intersect))
-                                new_partitions.add(frozenset(difference))
+                                partitions.remove(Y)
+                                partitions.add(frozenset(intersect))
+                                partitions.add(frozenset(difference))
+                                # si Y está en el worklist se quita
                                 if Y in worklist:
                                     worklist.remove(Y)
-                                #worklist.add(frozenset(intersect))
-                                #worklist.add(frozenset(difference))
-                                worklist.update([frozenset(intersect), frozenset(difference)])
-                            else: 
-                                new_partitions.add(Y)
-                        partitions = new_partitions
+                                # se agregan las particiones hechas 
+                                worklist.extend([frozenset(intersect), frozenset(difference)])
+                           
 
             # Construir la nueva tabla de transiciones
             new_transitions = {}
-            state_representatives = {}
-            for state_set in partitions:
-                representative = next(iter(state_set), None)
-                if representative is None:  # Saltárselo en caso esté vacío
-                    continue
-                state_representatives[representative] = state_set
-                for state in state_set:
-                    for symbol in self.alphabet:
-                        if (state, symbol) in self.transitions:
-                            to_state = self.transitions[(state, symbol)]
-                            for to_state_set in partitions:
-                                if to_state in to_state_set:
-                                    new_transitions[(representative, symbol)] = next(iter(to_state_set))
-                                    break
+            # se mapea cada estado a su partición 
+            state_representatives = {next(iter(state_set), None): state_set for state_set in partitions}
+            # Iterar sobre las transiciones originales para así construir las nuevas
+            for from_state, symbol in self.transitions:
+                for representative, partition in state_representatives.items():
+                    # si el estado que viene está en la partición
+                    if from_state in partition:
+                        # el estado al que va se le asigna el estado de donde viene con el símbolo
+                        to_state = self.transitions[(from_state, symbol)]
+                        # se mapea el estado 
+                        to_state_rep = next((rep for rep, part in state_representatives.items() if to_state in part), None)
+                        # se chequea si no es none
+                        if to_state_rep is not None:
+                            new_transitions[(representative, symbol)] = to_state_rep
+                        break
 
             # Determinar los nuevos estados inicial y finales
-            new_start_state = None
-            new_final_states = set()
-            for state_set in partitions:
-                if not state_set:  # Chequear para no obtener algo de un set vacío
-                    continue
-                if self.start in state_set:
-                    new_start_state = next(iter(state_set))
-                if self.final_states.intersection(state_set):
-                    new_final_states.add(next(iter(state_set)))
+            new_start_state = next((rep for rep, part in state_representatives.items() if self.start in part), None)
+            new_final_states = {rep for rep, part in state_representatives.items() if part.intersection(self.final_states)}
+            
 
 
             return {
@@ -106,18 +104,19 @@ class DFA_min:
         dot.render(format='pdf', view=True, cleanup=True)
 
         
+
     def isAcceptingMin(self, dfa_min, w):
         current_state = dfa_min['start']
-
+        # se itera para cada transición 
         for character in w:
             next_state = dfa_min['transitions'].get((current_state, character))
             
-        
+            # si el siguiente estado es None, no es aceptado
             if next_state is None:
                 return 'No'
         
             current_state = next_state
-
+        # si el estado final al que se llega es aceptado
         return 'Sí' if current_state in dfa_min['final_states'] else 'No'
         
 
@@ -127,5 +126,5 @@ def buildUsingMinimization(dfa, w):
     minimized = dfa_min.minimize()
     print("AFD-min: " + dfa_min.isAcceptingMin(minimized,w))
     dfa_min.visualize()
-    print(minimized)
+    #print(minimized)
     return minimized

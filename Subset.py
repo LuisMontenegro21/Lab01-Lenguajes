@@ -7,7 +7,7 @@ def buildUsingSubset(nfa, w):
     construct = dfa.subsetConstr()
     dfa.visualize(construct)
     print("AFD-subconjunto: " + dfa.isAccepted(construct,w))
-    print(construct)
+    #print(construct)
     return construct
     
 

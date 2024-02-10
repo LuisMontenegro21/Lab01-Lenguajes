@@ -59,7 +59,7 @@ class DFA:
             for symbol in filter(lambda x: x is not None, self.nfa_alphabet):  # Se excluye lo que es epsilon
                 # se mueve al siguiente estado si no es epsilon
                 move_result = self.move(current_frozenset, symbol, self.nfa_transitions)
-                if not move_result:
+                if not move_result: # en caso haya none
                     continue
                 # se da un resultado de la cerradura para cada recorrido
                 closure_result = frozenset().union(*[self.epsilonClosure(s, self.nfa_transitions) for s in move_result])
@@ -125,10 +125,10 @@ class DFA:
                 dot.node(state, state)
         
         # Darle nombre a los estados
-        dot.node('', label = '' , shape='none')
+        dot.node('', label = 'start' , shape='none')
         dot.edge('', dfa['start'])
         
-        # Add transitions
+        # Añadir transiciones 
         for from_state, symbol, to_state in dfa['transitions']:
             dot.edge(from_state, to_state, label=symbol)
         

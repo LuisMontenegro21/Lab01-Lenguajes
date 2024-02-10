@@ -1,90 +1,119 @@
 # archivo dedicado a la construcción directa del autómata
+from Postfix import shuntingYard
 
 class Node:
-    # clase para definir los nodos
+    # clase para definir los nodos del arbol 
     def __init__(self, value, left=None, right=None):
         self.value = value
         self.left = left
         self.right = right    
-
-
-
-    def __repr__(self):
-        return '<Node {}>'.format(self.value)
+        # propiedades para firstpos, nullable, lastpos
+        self.nullable = False
+        self.firstpost = set()
+        self.lastpost = set()
+        self.position = 0
 
 
 class Direct:
 
     def __init__(self, regex):
         self.regex = regex
-        self.index = 0
+        self.node_counter = 0
+        self.precedence = {'|': 1, '.': 2, '*': 3, '+': 3, '?': 3}
 
-    # para ir avanzando sobre la cadena uno por uno para recuperar los caracteres que va leyendo
-    def nextToken(self):
-        if self.index < len(self.regex):
-            token = self.regex[self.index]
-            self.index += 1
-            return token
-        return None
-    
-    # Para manejar los operadores de misma precedencia +*?
-    def handleOperator(self, node, operator):
-        if operator == '*':
-            return Node('*', node)
-        elif operator == '+': 
-            # por equivalencia r+ = r.r*
-            return Node('.', node, Node('*', node))
-        elif operator == '?':
-            # por equivalencia r? = r|ε
-            return Node('|', node, Node('ε'))
+    # para construir el arbol sintactico
+    def buildSyntaxTree(self):
+        # Utilizar el algoritmo shunting yard para volverlo postfix
+        postfix = shuntingYard(self.regex)
+        stack = []
+        for char in postfix:
+            # verificar si el caracter es [a-z] , [0-9]
+            if char.isalnum():
+                stack.append(Node(char))
+            else:
+                # si el caracter tiene precedencia 3
+                if char in {'*', '+', '?'}:
+                    operand = stack.pop()
+                    node = Node(char, operand)
+                else:
+                    right = stack.pop()
+                    left = stack.pop()
+                    node = Node(char, left, right)
+                stack.append(node)
+        return stack.pop()
+
+    # volver el arbol sintactico a un diccionario 
+    def syntaxTreeToDict(self, node = None):
+        if node is None:
+            node = self.buildSyntaxTree()
+        tree_dict = {"value": node.value}
+        if node.left:
+            tree_dict['left'] = self.syntaxTreeToDict(node.left)
+        if node.right:
+            tree_dict['right'] = self.syntaxTreeToDict(node.right)
         
-        return node
-    # método para representar * + ? (ya que tienen precedencia equivalente)
-    def parseFactor(self):
-        token = self.nextToken()
-        if token == '(':
-            node = self.parseExpression()
-            self.index += 1 
-            if self.index < len(self.regex) and self.regex[self.index] in ('*', '+', '?'):
-                operator = self.nextToken()
-                node = self.handleOperator(node, operator)
-            return node
-        elif token and token != ')':
-            if self.index < len(self.regex) and self.regex[self.index] in ('*', '+', '?'):
-                operator = self.nextToken()
-                return self.handleOperator(Node(token), operator)
-            return Node(token)
-        return None
+        return tree_dict
     
-    # empleado para representar la concatenación
-    def parseTerm(self):
-        node = self.parseFactor()
-        while self.index < len(self.regex) and self.regex[self.index] not in ('|', ')'):
-            next_node = self.parseFactor()
-            node = Node('.', node, next_node) if node else next_node
-        return node
+    def computeNullable(self, node):
+        # Computar si es nullable el nodo
+        if node['value'] in ['*', '?', 'ε']:  # Kleene star, ?  y epsilon siempre son nullable
+            return True
+        elif node['value'] == '|':
+            return self.computeNullable(node['left']) or self.computeNullable(node['right'])
+        elif node['value'] == '.':
+            return self.computeNullable(node['left']) and self.computeNullable(node['right'])
+        else:  
+            return False  # No es nullable a menos que sea épsilon
 
-    # empleado para manejar las operaciones de alternación '|'
-    def parseExpression(self):
-        nodes = [self.parseTerm()]
-        while self.index < len(self.regex) and self.regex[self.index] == '|':
-            self.index += 1  
-            nodes.append(self.parseTerm())
-        
-        if len(nodes) > 1:
-            root = nodes[0]
-            for node in nodes[1:]:
-                root = Node('|', root, node)
-            return root
-        return nodes[0]
+    def computeFirstpos(self, node):
+        # Computa los firstpos de cada nodo
+        if 'position' in node:  
+            return {node['position']}
+        elif node['value'] == '|':
+            return self.computeFirstpos(node['left']) | self.computeFirstpos(node['right'])
+        elif node['value'] == '.':
+            if self.computeNullable(node['left']):
+                return self.computeFirstpos(node['left']) | self.computeFirstpos(node['right'])
+            else:
+                return self.computeFirstpos(node['left'])
+        elif node['value'] == '*':
+            return self.computeFirstpos(node['left'])
+        else:  # Other operators or cases
+            return set()
 
-    # para construir el syntax tree 
-    def syntaxTree(self):
-        return self.parseExpression()
+    def computeLastpos(self, node):
+        # Computa el lastpos de cada hoja
+        if 'position' in node:  
+            return {node['position']}
+        elif node['value'] == '|':
+            return self.computeLastpos(node['left']) | self.computeLastpos(node['right'])
+        elif node['value'] == '.':
+            if self.computeNullable(node['right']):
+                return self.computeLastpos(node['left']) | self.computeLastpos(node['right'])
+            else:
+                return self.computeLastpos(node['right'])
+        elif node['value'] == '*':
+            return self.computeLastpos(node['left'])
+        else:  # Other operators or cases
+            return set()
 
+    def enhance(self, node):
+
+        if node is not None:
+            node['nullable'] = self.computeNullable(node)
+            if 'left' in node:
+                self.enhance(node['left'])
+            if 'right' in node:
+                self.enhance(node['right'])
+            node['firstpos'] = self.computeFirstpos(node)
+            node['lastpos'] = self.computeLastpos(node)
 
 
 def buildUsingDirectConstr(w):
     dfa = Direct(w)
-    syntax = dfa.syntaxTree()
-    print(syntax)
+    syntax = dfa.syntaxTreeToDict()
+    dfa.enhance(syntax)
+    #print(dfa.computeNullable(syntax))
+    #print(dfa.computeFirstpos(syntax))
+    #print(dfa.computeLastpos(syntax))
+    #print(syntax)

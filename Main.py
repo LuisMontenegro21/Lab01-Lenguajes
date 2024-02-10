@@ -27,7 +27,7 @@ def main():
     dfa_min = buildUsingMinimization(dfa, w)
     
     #TODO fix direct construct
-    #dfa_dir = buildUsingDirectConstr(regex)
+    dfa_dir = buildUsingDirectConstr(regex)
 
 if __name__ == "__main__":
     main()

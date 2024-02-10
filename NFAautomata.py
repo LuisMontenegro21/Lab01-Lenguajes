@@ -112,13 +112,13 @@ class NFA:
                 for nextS in nextSs:
                     # Agregar nodos al gráfico para estado inicial
                     if thisS == self.stateS:
-                        dot.node(str(id(thisS)), label=str(thisS.number), shape="circle")
+                        dot.node(str(id(thisS)), label="Start", shape="circle")
                         self.setStartingState(thisS.number)
                     else:
                         dot.node(str(id(thisS)), label=str(thisS.number), shape="circle")
                     # Agregar nodo si el estado es final
                     if nextS.final and nextS == self.stateE:
-                        dot.node(str(id(nextS)), label=str(nextS.number), shape="doublecircle")
+                        dot.node(str(id(nextS)), label="Final", shape="doublecircle")
                         self.setFinalState(nextS.number)
                     else:
                         dot.node(str(id(nextS)), label=str(nextS.number), shape="circle")
