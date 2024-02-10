@@ -78,7 +78,7 @@ class Direct:
                 return self.computeFirstpos(node['left'])
         elif node['value'] == '*':
             return self.computeFirstpos(node['left'])
-        else:  # Other operators or cases
+        else:  # Otros operadores
             return set()
 
     def computeLastpos(self, node):
@@ -94,7 +94,7 @@ class Direct:
                 return self.computeLastpos(node['right'])
         elif node['value'] == '*':
             return self.computeLastpos(node['left'])
-        else:  # Other operators or cases
+        else:  # Otros casos de operadores 
             return set()
 
     def enhance(self, node):

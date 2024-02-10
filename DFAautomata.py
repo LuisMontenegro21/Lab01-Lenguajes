@@ -56,7 +56,7 @@ class DFA:
             current_frozenset = unmarked_states.pop(0)  # Se va chequeando en fila para mantener orden
             current_state = state_map[current_frozenset]
 
-            for symbol in filter(lambda x: x is not None, self.nfa_alphabet):  # Se excluye lo que es epsilon
+            for symbol in filter(lambda x: x is not None , self.nfa_alphabet):  # Se excluye lo que es epsilon
                 # se mueve al siguiente estado si no es epsilon
                 move_result = self.move(current_frozenset, symbol, self.nfa_transitions)
                 if not move_result: # en caso haya none

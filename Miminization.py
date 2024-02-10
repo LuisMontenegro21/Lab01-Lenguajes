@@ -1,4 +1,5 @@
 # Archivo para la reducción de un AFD
+# https://en.wikipedia.org/wiki/DFA_minimization
 from graphviz import Digraph
 
 
@@ -39,13 +40,13 @@ class DFA_min:
                              # si ambos no están vacíos se reemplaza Y por dos nuevas particiones
                             if intersect and difference:
                                 partitions.remove(Y)
-                                partitions.add(frozenset(intersect))
-                                partitions.add(frozenset(difference))
+                                partitions.add(set(intersect))
+                                partitions.add(set(difference))
                                 # si Y está en el worklist se quita
                                 if Y in worklist:
                                     worklist.remove(Y)
                                 # se agregan las particiones hechas 
-                                worklist.extend([frozenset(intersect), frozenset(difference)])
+                                worklist.extend([set(intersect), set(difference)])
                            
 
             # Construir la nueva tabla de transiciones
