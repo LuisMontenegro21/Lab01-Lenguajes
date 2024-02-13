@@ -38,7 +38,6 @@ def thompson(node):
         # Conexión con transición epsilon desde el estado final del sub-AFN al nuevo estado final
         nfaExpr.stateE.add(None, end)
         # Conexión con transición epsilon desde el nuevo estado inicial al nuevo estado final
-        start.add(None, end)
 
         return NFA(start, end)
     
