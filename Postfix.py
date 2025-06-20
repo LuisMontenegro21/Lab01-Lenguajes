@@ -1,31 +1,38 @@
-# Funciones para volver el regex a postfix
-# Para la presedencia de operadores
-precedence = {'|': 1, '.': 2, '*': 3, '+' : 3, '?' : 3}
+'''
+Functions used to perform the Shunting Yard algorithm
+'''
 
-# define operadores definidos
-def isOperator(token):
-        return token in "|.*+?"
+precedence:dict = {'|': 1, '.': 2, '*': 3, '+' : 3, '?' : 3}
 
-#define la presedencia de los operadores
-def hasHigherPrecedence(op1, op2):
+def is_operator(token: str) -> bool:
+        # check if the operator keys are here
+        return token in precedence.keys()
+
+
+def has_higher_precedence(op1: str, op2: str) -> bool:
+        # checks if the precedence of the operator on the right is bigger than the one on the left
         return precedence[op1] > precedence[op2]
 
-#emplea el algo ritmo shunting yard
-def shuntingYard(expression):
-        output = []
-        operator_stack = []
 
-        # se recorre la expresión
+def shunting_yard(expression: list[str]) -> list[str]:
+        output: list[str] = []
+        operator_stack: list[str] = []
+
+
         for token in expression:
-            # si el token se encuentra 0-9 o a-z se manda a la cola (no se considera otros símbolos)
+            # if token is alphanumeric
             if token.isalnum():  
                 output.append(token)
-            elif isOperator(token):
-                while (operator_stack and isOperator(operator_stack[-1]) and hasHigherPrecedence(operator_stack[-1], token)):
+            # if the token is operator
+            elif is_operator(token):
+                # check if the token 
+                while (operator_stack and is_operator(operator_stack[-1]) and has_higher_precedence(operator_stack[-1], token)):
                     output.append(operator_stack.pop())
                 operator_stack.append(token)
+
             elif token == '(':  
                 operator_stack.append(token)
+
             elif token == ')':  
                 while operator_stack and operator_stack[-1] != '(':
                     output.append(operator_stack.pop())
@@ -37,14 +44,31 @@ def shuntingYard(expression):
 
         return output
 
-# convertir el la expression a postfix para el AFN
-def infixToPostfix(expression):
-    # reemplaza los espacios y ve los tokens o caracteres y los guarda en tokens
-    expression = expression.replace(" ", "")
-    tokens = [c for c in expression]
+def place_implicit_concat(regex: str) -> list[str]:
+    tokens: list[str] = []
+    prev: str | None = None
+    left_side: set = {')', '*', '+', '?'}
+    right_side: set = {'('}
+    for char in regex:
+        token = char
+        # check if prev is None before using isalnum()
+        if prev is not None:
+            left_cond:bool = (prev.isalnum() or prev in left_side)
+            right_cond:bool = (token.isalnum() or token in right_side)
+            # if it satisfies both conditions, append a concatenation
+            if left_cond and right_cond:
+                tokens.append('.')
+        # else leave it unchanged
+        tokens.append(token)
+        # update previous to current
+        prev = token
+    return tokens
 
-    # ejecuta el algoritmo shuntingYard y finalmente une la nueva expresión ya con los tokens en forma postfix
-    postfix_tokens = shuntingYard(tokens)
-    postfix_expression = "".join(postfix_tokens)
-    
+# turn infix to postfix 
+def infix_to_postfix(expression: str) -> str:
+    # replace tokens and insert implicit concatenation
+    tokens: list[str] = place_implicit_concat(expression)
+    # runs shutting_yard algorithm
+    postfix_tokens: list[str] = shunting_yard(tokens)
+    postfix_expression:str = "".join(postfix_tokens)
     return postfix_expression
