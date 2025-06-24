@@ -1,11 +1,10 @@
 #Archivo Python cuya función es concretar la ejecución del programa
-from Thompson import buildUsingThompson
-from Subset import buildUsingSubset
-from DirectConst import buildUsingDirectConstr
-from Miminization import buildUsingMinimization
+from Automata.Thompson import buildUsingThompson
+from Automata.DirectConst import build_direct_dfa
+from Automata.Miminization import buildUsingMinimization
 
 
-def main():
+def main() -> None:
     
     print("+---------------------------------+")
     print("+EXPRESIONES REGULARES A AUTÓMATAS+")
@@ -13,21 +12,21 @@ def main():
 
     # Para los inputs
     print("\nIngrese la expresión regular: ")
-    regex = str(input())  
+    regex:str = str(input())  
     print("\nIngrese una cadena w: ")
-    w = str(input())
+    w:str = str(input())
 
     # Para graficar y testear el algoritmo de Thompson para AFN
-    nfa = buildUsingThompson(regex,w)
+    #nfa = buildUsingThompson(regex,w)
     
     # Para graficar y testear el algoritmo de subconjuntos para AFD
-    dfa = buildUsingSubset(nfa,w)
+    #dfa = buildUsingSubset(nfa,w)
 
     #TODO fix DFA_min 
     #dfa_min = buildUsingMinimization(dfa, w)
     
     #TODO fix direct construct
-    #dfa_dir = buildUsingDirectConstr(regex)
+    dfa_dir = build_direct_dfa(regex)
 
 if __name__ == "__main__":
     main()
