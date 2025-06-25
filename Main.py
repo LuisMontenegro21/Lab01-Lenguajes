@@ -1,7 +1,7 @@
 #Archivo Python cuya función es concretar la ejecución del programa
 from Automata.Thompson import buildUsingThompson
 from Automata.DirectConst import build_direct_dfa
-from Automata.Miminization import buildUsingMinimization
+
 
 
 def main() -> None:

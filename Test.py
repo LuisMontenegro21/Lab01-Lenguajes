@@ -1,13 +1,12 @@
-from Algorithms.Postfix import infix_to_postfix
+from Algorithms.Postfix import expand_replace, infix_to_postfix
 from Automata.DirectConst import DirectDFA, build_direct_dfa
 
 
 def main():
     regex:str = input("Input regex: ")
-    print(f"Original: {regex}")
-    print(f"Postfix: {infix_to_postfix(regex)}")
-
-    build_direct_dfa(regex=regex)
+    print(infix_to_postfix(regex))
+    # w:str = input(f"Ingrese una cadena para probar: ")
+    # build_direct_dfa(regex=regex, w=w)
 
 
 

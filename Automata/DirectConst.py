@@ -1,12 +1,14 @@
 from Algorithms.Postfix import infix_to_postfix
-from Automata.Automaton import Automaton
+from Automata.Automaton import Automaton, PNode
 from typing import Optional
 
-class Node:
-    def __init__(self, value: str, left:Optional['Node']=None, right:Optional['Node']=None) -> None:
-        self.value = value
-        self.left: Node = left
-        self.right: Node = right    
+class Node(PNode):
+    def __init__(self, value: str, left:Optional['Node']=None, right:Optional['Node']=None) -> None:  
+        super().__init__(value=value, left=left,right=right) # gather upper constructor
+        # add properties of DirectDFA node class
+        # self.value = value
+        # self.left: Node = left
+        # self.right: Node = right
         self.nullable: bool = False
         self.firstpos: set[int] = set()
         self.lastpos: set[int] = set()
@@ -18,15 +20,17 @@ class Node:
 
 class DirectDFA(Automaton):
 
-    def __init__(self, regex:str) -> None:
+    def __init__(self) -> None:
         super().__init__() # get Automaton constructor
-        self.regex: str = regex
         self.followpos_: dict[int, set[int]] = {} # to compute followpos after computing firstpos, lastpos, nullable
         self.position_map_: dict[int, str] = {} # map positions to values
         self.val_pos: dict[str, int] = {} # map values to positions
+        self.regex:str|list = None
+        self.root:Node = None
 
-    def build_syntax_tree(self) -> list[Node]:
-        self.regex += '#'
+    def build_syntax_tree(self, regex:str|list) -> list[Node]:
+        self.regex = regex # update the regex
+        self.regex += '#' # add final marker 
         postfix:list[str] = infix_to_postfix(self.regex)
         stack:list[Node] = []
 
@@ -45,23 +49,25 @@ class DirectDFA(Automaton):
                 stack.append(node)
         # return root
         if stack:
-            return stack.pop()
+            root: Node = stack.pop()
+            self.root = root
+            return root
         else:
             return None
     
     # calls like: assing_position(root, [0])
-    def assign_positions(self, node: Node, counter: list[int], result:dict[int, str]) -> None:
+    def assign_positions(self, node: Node, counter: list[int]) -> None:
         if node is None:
             return
         if node.left:
-            self.assign_positions(node.left, counter, result)
+            self.assign_positions(node.left, counter)
         if node.right:
-            self.assign_positions(node.right, counter, result)
+            self.assign_positions(node.right, counter)
         
         if not node.left and not node.right and node.value != 'ε':
             counter[0] += 1
             node.position = counter[0]
-            result[node.position] = node.value
+            self.position_map_[node.position] = node.value
             self.val_pos[node.value] = node.position
         
     def print_properties(self, node:Node) -> None:
@@ -136,7 +142,7 @@ class DirectDFA(Automaton):
                 self.followpos_.setdefault(i, set()).update(node.firstpos)
 
     
-    def build_dfa(self, root: Node, followpos: dict[int, set[int]], pos_to_symbol: dict[int, str]) -> dict:
+    def build(self, root: Node) -> dict:
         if root is None:
             return {}
         
@@ -149,17 +155,17 @@ class DirectDFA(Automaton):
         unmarked.append(start)
         dfa[start] = {}
 
-        end_marker_pos: int = self.val_pos.get('#', 0)
+        end_marker_pos: int = self.val_pos.get('#', 0) # get end marker position
         
         while unmarked:
             current: frozenset[int] = unmarked.pop()
             symbol_map: dict[str, set[int]] = {}
 
             for pos in current:
-                symbol:str = pos_to_symbol[pos]
+                symbol:str = self.position_map_[pos]
                 if symbol == '#':
                     continue
-                symbol_map.setdefault(symbol, set()).update(followpos.get(pos, set()))
+                symbol_map.setdefault(symbol, set()).update(self.followpos_.get(pos, set()))
             
             for symbol, positions in symbol_map.items():
                 positions_frozen = frozenset(positions)
@@ -171,26 +177,35 @@ class DirectDFA(Automaton):
             
             if end_marker_pos in current:
                 accepting_states.add(current)
-        
-        print(f"states: {states}")
-        print(f"accepting states: {accepting_states}")
+
+        self.accepting_states = accepting_states
+        self.states = states
+        self.start = start
+        self.dfa = dfa
         return dfa
     
-    def run_dfa(self, w: str) -> bool:
-        w_list: list[str] = list(w) # convert to list
+    def accepts(self, w: str | list) -> bool:
+        if isinstance(w, str):
+            w: list[str] = list(w) # convert to list if not already
+        current: frozenset = self.start
+        for chr in w:
+            if chr not in self.dfa[current]:
+                return False
+            current = self.dfa[current][chr]
+        return current in self.accepting_states # check if our current state matches an accepting state
 
 
 
 
-# TODO change passing arguments to just leave the logic within the dfa to speeds things up
-def build_direct_dfa(regex: str):
-    dfa = DirectDFA(regex=regex) # make instance
-    root: Node = dfa.build_syntax_tree() # gather root of tree
-    dfa.assign_positions(node=root, counter=[0], result=dfa.position_map_) # assign positions to nodes
+
+def build_direct_dfa(regex: str, w:str):
+    dfa = DirectDFA() # make instance
+    root: Node = dfa.build_syntax_tree(regex=regex) # gather root of tree
+    dfa.assign_positions(node=root, counter=[0]) # assign positions to nodes
     dfa.nullable_firstpos_lastpos(node=root) # compute firstpos, lastpos, nullable
     dfa.print_properties(node=root) # print properties to make sure they're correct
     dfa.followpos(node=root) # compute followpos
     print(f"Followpos: {dfa.followpos_}") # print followpos
-
-    dfa_dict = dfa.build_dfa(root=root, followpos=dfa.followpos_, pos_to_symbol=dfa.position_map_) # build DFA
+    dfa_dict = dfa.build(root=root) # build DFA
     print(f"DFA: {dfa_dict}") # print it
+    print(f"{dfa.accepts(w=w)}")

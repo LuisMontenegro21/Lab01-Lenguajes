@@ -4,6 +4,26 @@ Functions used to perform the Shunting Yard algorithm
 
 precedence:dict = {'|': 1, '.': 2, '*': 3, '+' : 3, '?' : 3}
 
+ESCAPED_CASES = {
+    'd' : "(0|1|2|3|4|5|6|7|8|9)",
+    'w' : "(" + "|".join(
+        list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")) + ")",
+    's' : "( |\\t|\\n|\\r|\\f|\\v)",
+    'D' : "(!0|!1|!2|!3|!4|!5|!6|!7|!8|!9)",
+    'W' : "(!" + "|!".join(
+        list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")) + ")",
+    'S' : "(! |!\\t|!\\n|!\\r|!\\f|!\\v)" # negated
+}
+ESCAPED_LITERALS = {
+    's': ' ',       
+    't': '\\t',     
+    'n': '\\n',     
+    'r': '\\r',
+    'f': '\\f',
+    'v': '\\v',
+}
+
+
 def is_operator(token: str) -> bool:
     # check if the operator keys are here
     return token in precedence.keys()
@@ -50,6 +70,12 @@ def shunting_yard(expression: list[str]) -> list[str]:
 
     return output
 
+#TODO fix this to remove quotes
+def parse_quote(expr: str, i:int) -> tuple[str, int]:
+    if expr[i] in {'"', "'"} and i+2<len(expr) and expr[i+2] == expr[i]:
+        return expr[i+1], i+3
+    return expr[i], i+1
+
 def place_implicit_concat(regex: str) -> list[str]:
     '''
     Place implicit symbol '.' for concatenation to simplify token handling
@@ -73,10 +99,54 @@ def place_implicit_concat(regex: str) -> list[str]:
         prev = token
     return tokens
 
+def expand_replace(regex: str) -> str:
+    '''
+    Expands ranges like [A-Z] into (A|B|C|D|E|F...|X|Z)
+    Also handles escaped cases like \\d, \\w, \\s, etc.
+    '''
+    i: int = 0
+    result: str = ""
+    while i < len(regex):
+        # check if its a range
+        if regex[i] == '[':
+            i += 1
+            expanded: list = []
+            while i < len(regex) and regex[i] != ']':
+                if regex[i] == '\\':
+                    if i + 1 < len(regex):
+                        esc = regex[i+1] # get the escaped char
+                        if esc in ESCAPED_LITERALS:
+                            expanded.append(ESCAPED_LITERALS[esc])
+                        elif esc in ESCAPED_CASES:
+                            expanded.append(ESCAPED_CASES[esc])
+                        else:
+                            expanded.append('\\' + esc)
+                        i += 2
+                    else:
+                        expanded.append('\\')
+                        i += 1
+
+                elif i+2 < len(regex) and regex[i+1] == '-':
+                    
+                    start, end = regex[i], regex[i+2]
+                    expanded.extend([chr(c) for c in range(ord(start), ord(end) + 1)]) # append the characters in the ordinary range
+                    i += 3
+
+                else:
+                    expanded.append(regex[i])
+                    i += 1
+            result += "(" + "|".join(expanded) + ")"
+            i+=1
+        # else, leave it unchanged and just append
+        else:
+            result += regex[i]
+            i += 1
+    return result
+
 # turn infix to postfix 
 def infix_to_postfix(expression: str) -> list[str]:
     # replace tokens and insert implicit concatenation
-    tokens: list[str] = place_implicit_concat(expression)
+    tokens: list[str] = place_implicit_concat(expand_replace(expression))
     # runs shutting_yard algorithm
     postfix_tokens: list[str] = shunting_yard(tokens)
     return postfix_tokens

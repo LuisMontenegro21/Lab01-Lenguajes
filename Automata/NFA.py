@@ -1,6 +1,3 @@
-# Archivo para definir las clases para el AFN
-from graphviz import Digraph
-
 
 
 #----------------------------------------
@@ -98,41 +95,7 @@ class NFA:
         # Conectar este AFN con otro AFN usando un carácter
         self.stateE.add(character, nfaN.stateS)  # Conectar el estado final de este AFN con el estado inicial del otro
 
-    def diagram(self):
-        # Visualizar el AFN usando graphviz
-        dot = Digraph()
-        NewS = [self.stateS]  # Lista de estados nuevos a explorar
-        pastS = set()  # Conjunto de estados ya explorados
-
-        while NewS:
-            thisS = NewS.pop()  # Tomar un estado de la lista de estados nuevos
-            for character, nextSs in thisS.changes.items():
-                for nextS in nextSs:
-                    # Agregar nodos al gráfico para estado inicial
-                    if thisS == self.stateS:
-                        dot.node(str(id(thisS)), label="Start", shape="circle")
-                        self.set_starting_state(thisS.number)
-                    else:
-                        dot.node(str(id(thisS)), label=str(thisS.number), shape="circle")
-                    # Agregar nodo si el estado es final
-                    if nextS.final and nextS == self.stateE:
-                        dot.node(str(id(nextS)), label="Final", shape="doublecircle")
-                        self.set_final_state(nextS.number)
-                    else:
-                        dot.node(str(id(nextS)), label=str(nextS.number), shape="circle")
-
-                    # Agregar bordes al gráfico
-                    if character:
-                        dot.edge(str(id(thisS)), str(id(nextS)), label=character)
-                    else:
-                        dot.edge(str(id(thisS)), str(id(nextS)), label="ε")
-
-                    if nextS not in pastS:
-                        NewS.append(nextS)  # Agregar estados no explorados a la lista
-
-            pastS.add(thisS)  # Marcar este estado como explorado
-        # Devolver el gráfico del AFN
-        return dot  
+    
     
     def getNFAParams(self):
         num_states = NFAState.count  # Número de estados
