@@ -1,5 +1,3 @@
-# Referencias: Compilers: Principles, Techniques, and Tools (Pearson Education, Inc) 1986
-
 #----------------------------------------
 # Clases del AFD
 #----------------------------------------

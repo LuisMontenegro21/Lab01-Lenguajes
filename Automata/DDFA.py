@@ -3,12 +3,10 @@ from Automata.Automaton import Automaton, PNode
 from typing import Optional
 
 class Node(PNode):
+    __slots__ = PNode.__slots__  + ('nullable', 'firstpos', 'lastpos', 'position') # inherit slots from parent class, make it faster due to making class immutable
+
     def __init__(self, value: str, left:Optional['Node']=None, right:Optional['Node']=None) -> None:  
         super().__init__(value=value, left=left,right=right) # gather upper constructor
-        # add properties of DirectDFA node class
-        # self.value = value
-        # self.left: Node = left
-        # self.right: Node = right
         self.nullable: bool = False
         self.firstpos: set[int] = set()
         self.lastpos: set[int] = set()
@@ -18,7 +16,7 @@ class Node(PNode):
         '''Represents node as a string'''
         return f"Node: {self.value} Position: {self.position} Firstpos: {self.firstpos} Lastpos: {self.lastpos} Nullable: {self.nullable}"
 
-class DirectDFA(Automaton):
+class DDFA(Automaton):
 
     def __init__(self) -> None:
         super().__init__() # get Automaton constructor
@@ -28,7 +26,13 @@ class DirectDFA(Automaton):
         self.regex:str|list = None
         self.root:Node = None
 
-    def build_syntax_tree(self, regex:str|list) -> list[Node]:
+    def get_automata(self) -> 'DDFA':
+        return self
+    
+    def print_automata(self) -> None:
+        pass
+
+    def build_syntax_tree(self, regex:str) -> list[Node]:
         self.regex = regex # update the regex
         self.regex += '#' # add final marker 
         postfix:list[str] = infix_to_postfix(self.regex)
@@ -142,7 +146,7 @@ class DirectDFA(Automaton):
                 self.followpos_.setdefault(i, set()).update(node.firstpos)
 
     
-    def build(self, root: Node) -> dict:
+    def build(self, root: Node) -> None:
         if root is None:
             return {}
         
@@ -163,7 +167,7 @@ class DirectDFA(Automaton):
 
             for pos in current:
                 symbol:str = self.position_map_[pos]
-                if symbol == '#':
+                if symbol == '#': # if symbol is the final one, skip iteration
                     continue
                 symbol_map.setdefault(symbol, set()).update(self.followpos_.get(pos, set()))
             
@@ -178,11 +182,11 @@ class DirectDFA(Automaton):
             if end_marker_pos in current:
                 accepting_states.add(current)
 
+        # update self's attributes 
         self.accepting_states = accepting_states
         self.states = states
         self.start = start
         self.dfa = dfa
-        return dfa
     
     def accepts(self, w: str | list) -> bool:
         if isinstance(w, str):
@@ -198,14 +202,14 @@ class DirectDFA(Automaton):
 
 
 
-def build_direct_dfa(regex: str, w:str):
-    dfa = DirectDFA() # make instance
+def build_direct_dfa(regex: str, w:Optional[str] = None):
+    dfa = DDFA() # make instance
     root: Node = dfa.build_syntax_tree(regex=regex) # gather root of tree
     dfa.assign_positions(node=root, counter=[0]) # assign positions to nodes
     dfa.nullable_firstpos_lastpos(node=root) # compute firstpos, lastpos, nullable
-    dfa.print_properties(node=root) # print properties to make sure they're correct
+    # dfa.print_properties(node=root) # print properties to make sure they're correct
     dfa.followpos(node=root) # compute followpos
-    print(f"Followpos: {dfa.followpos_}") # print followpos
-    dfa_dict = dfa.build(root=root) # build DFA
-    print(f"DFA: {dfa_dict}") # print it
-    print(f"{dfa.accepts(w=w)}")
+    # print(f"Followpos: {dfa.followpos_}") # print followpos
+    dfa.build(root=root) # build DFA
+    if w:
+        print(f"{dfa.accepts(w=w)}")

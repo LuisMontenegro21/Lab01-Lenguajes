@@ -5,10 +5,13 @@
 from typing import Optional
 
 class PNode:
+
     '''
     Base parent class for a Node
     '''
-    def __init__(self, value, left: Optional['PNode'] = None, right: Optional['PNode'] = None) -> None:
+    __slots__ = ('value', 'left', 'right') # use slots to avoid __dict__ being generated. New class attributes become dynamically immutable
+
+    def __init__(self, value: Optional[str], left: Optional['PNode'] = None, right: Optional['PNode'] = None) -> None:
         self.value = value
         self.left: PNode = left
         self.right: PNode = right
@@ -24,9 +27,16 @@ class Automaton:
         self.accepting_states: set[frozenset[int]] = set()
         self.start: frozenset = frozenset()
         self.dfa: dict = {}
+
+    def get_automata(self) -> None:
+        raise NotImplementedError()
+    
+    def print_automata(self) -> None:
+        raise NotImplementedError()
     
     def accepts(self) -> None:
         raise NotImplementedError(f"Please implement this method on your class")
 
     def build(self) -> None:
         raise NotImplementedError(f"Please implement this method on your class")
+    

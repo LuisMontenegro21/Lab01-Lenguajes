@@ -1,5 +1,5 @@
 '''
-Functions used to perform the Shunting Yard algorithm
+Functions used to perform the Shunting Yard algorithm to transform infix to postfix
 '''
 
 precedence:dict = {'|': 1, '.': 2, '*': 3, '+' : 3, '?' : 3}
@@ -145,7 +145,7 @@ def expand_replace(regex: str) -> str:
 
 # turn infix to postfix 
 def infix_to_postfix(expression: str) -> list[str]:
-    # replace tokens and insert implicit concatenation
+    # replace tokens and insert implicit concatenation after replacing and expanding expressions
     tokens: list[str] = place_implicit_concat(expand_replace(expression))
     # runs shutting_yard algorithm
     postfix_tokens: list[str] = shunting_yard(tokens)

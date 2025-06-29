@@ -1,140 +1,60 @@
+from collections import defaultdict
+from Automata.Automaton import Automaton
 
 
-#----------------------------------------
-# Clases del AFN
-#----------------------------------------
-
-# Clase para el estado del AFN
 class NFAState:
-    # Se inicia en 1
+    # starts with 1
     count: int = 1  
-
-    states:list = []
+    # holds lists of NFA states
+    states:list['NFAState'] = []
 
     def __init__(self):
-        # Asignar un número único de estado basado en el contador
-        self.number = NFAState.count
-        # Inicializar un diccionario para almacenar las transiciones salientes
-        self.changes:dict = {}
-        # Inicializar el estado como no final
-        self.final = False
-        # Incrementar el contador de estados para el próximo estado creado
+        # assign a unique number
+        self.number: int = NFAState.count
+        # start a dictionary to add transitions
+        self.transitions:dict[str, list] = {}
+        # set final state as false
+        self.final: bool = False
+        # increase count and append for each new state created
         NFAState.count += 1  
         NFAState.states.append(self)
 
+    def add(self, character: str, state: 'NFAState'):
+        if character not in self.transitions.keys():
+            # create an empty list if the character is not in the transitions
+            self.transitions[character] = []  
+        # append the final state to the transitions given a character
+        self.transitions[character].append(state)  
 
-    def add(self, character, state):
-        if character not in self.changes:
-            # Crear una lista vacía si el carácter no está en las transiciones 
-            self.changes[character] = []  
-        # Agregar el estado de destino a las transiciones con el carácter dado
-        self.changes[character].append(state)  
-
-    def get_alphabet(self) -> list:
-        alphabet: list = [i for i in self.changes.keys() if i is not None]
-        print(f"State {self.number} alphabet: {alphabet}")
-        return alphabet
 
 
 class NFA:
     start_state:int = 0
     final_states:list = []
 
-
     @staticmethod
-    def get_character(character):
-        # Crear un AFN con un solo carácter
-        start = NFAState()  # Crear un estado inicial
-        end = NFAState()    # Crear un estado final
-        start.add(character, end)  # Conectar el estado inicial con el final usando el carácter
+    def create_character(character: str) -> 'NFA':
+        '''
+        Create a single character NFA 
+        '''
+        start = NFAState()  # create initial state
+        end = NFAState()    # create final state
+        start.add(character, end)  # connect final and initial states using char
 
-        return NFA(start, end)  # Devolver el AFN creado
-    
-    def get_states(self):
-        return NFAState.states
-    
-    def get_transitions(self):
-        transitions = []
-        # Iterar para construir las transiciones
-        for state in NFAState.states:
-            state_name = str(state.number)
-            for character, next_states in state.changes.items():
-                for next_state in next_states:
-                    next_state_name = str(next_state.number)
-                    transitions.append([state_name, character, next_state_name])
+        return NFA(start, end)  # return NFA
 
-        return transitions
-    
-    def set_starting_state(self, state):
-        self.start_state = state
-
-    def set_final_state(self, state):
-        if state not in self.final_states:
-            self.final_states.append(state)
-
-    def get_starting_state(self) -> int:
-        return self.start_state
-
-    def get_final_states(self) -> list:
-        return self.final_states
-
-    def __init__(self, start=None, end=None):
-        # Constructor de la clase Afn para crear un AFN
-        if start:
-            self.stateS = start
-        else:
-            self.stateS = NFAState()  # Crear un estado inicial por defecto si no se proporciona uno
-
-        if end:
-            self.stateE = end
-        else:
-            self.stateE = NFAState()  # Crear un estado final por defecto si no se proporciona uno
+    def __init__(self, start:'NFA'=None, end:'NFA'=None) -> None:
+        '''
+        Builds a NFA
+        '''
+        self.stateS = start if start is not None else self.stateS = NFAState() # create a default state if not given
+        self.stateE = end if end is not None else self.stateE = NFAState()  # create a default state if not given
         self.stateE.final = True  # Marcar el estado final como final
 
-    def conection(self, nfaN, character=None):
-        # Conectar este AFN con otro AFN usando un carácter
+    def conection(self, nfaN: NFAState, character:str=None) -> None:
+        '''Connect a NFA with another using character'''
         self.stateE.add(character, nfaN.stateS)  # Conectar el estado final de este AFN con el estado inicial del otro
 
     
     
-    def getNFAParams(self):
-        num_states = NFAState.count  # Número de estados
-        states = [str(i) for i in range(1, num_states + 1)]  # Lista de los identificadores de los estados
-        alphabet_set = set()  # set de alfabeto
-
-        transitions = []
-
-        # Iterar para construir y obtener el alfabeto y transiciones
-        for state in NFAState.states:
-            state_name = str(state.number)
-            for character, next_states in state.changes.items():
-                
-                for next_state in next_states:
-                    transitions.append([state_name, character, str(next_state.number)])
-
-                if character != 'ε' and character is not None:  
-                    alphabet_set.add(character)
-                
-
-        alphabet = sorted(alphabet_set)  # Lista sorteada del alfabeto
-
-        start = self.get_starting_state()
-        final_states = self.get_final_states()
-
-        # Retornar un diccionario
-        return {
-            #'num_states': num_states, #int
-            'states': states, #str
-            #'num_alphabet': len(alphabet), 
-            'alphabet': alphabet + [None], #str
-            'start': str(start), #str 
-            #'num_final': len(final_states),
-            'final_states': [str(i) for i in final_states], #str
-            #'num_transitions': num_transitions,
-            'transitions': transitions #str
-        }
-
-
-
-
-
+    
