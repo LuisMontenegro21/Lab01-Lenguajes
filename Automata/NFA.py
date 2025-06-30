@@ -1,30 +1,23 @@
-from collections import defaultdict
-from Automata.Automaton import Automaton
-
 
 class NFAState:
-    # starts with 1
-    count: int = 1  
-    # holds lists of NFA states
-    states:list['NFAState'] = []
-
+    '''
+    Assigns a NFAState to create small NFA
+    '''
+    _count: int = 1 
     def __init__(self):
         # assign a unique number
-        self.number: int = NFAState.count
+        self.number: int = NFAState._count
         # start a dictionary to add transitions
-        self.transitions:dict[str, list] = {}
+        self.transitions:dict[str, list[NFAState]] = {}
         # set final state as false
         self.final: bool = False
-        # increase count and append for each new state created
-        NFAState.count += 1  
-        NFAState.states.append(self)
+        # increase count 
+        NFAState._count += 1  
+        
 
     def add(self, character: str, state: 'NFAState'):
-        if character not in self.transitions.keys():
-            # create an empty list if the character is not in the transitions
-            self.transitions[character] = []  
         # append the final state to the transitions given a character
-        self.transitions[character].append(state)  
+        self.transitions.setdefault(character, []).append(state)  
 
 
 
@@ -43,17 +36,18 @@ class NFA:
 
         return NFA(start, end)  # return NFA
 
-    def __init__(self, start:'NFA'=None, end:'NFA'=None) -> None:
+    def __init__(self, start:NFAState=None, end:NFAState=None) -> None:
         '''
         Builds a NFA
         '''
-        self.stateS = start if start is not None else self.stateS = NFAState() # create a default state if not given
-        self.stateE = end if end is not None else self.stateE = NFAState()  # create a default state if not given
+        self.stateS = start or NFAState() # create a default state if not given
+        self.stateE = end or NFAState()  # create a default state if not given
         self.stateE.final = True  # Marcar el estado final como final
 
-    def conection(self, nfaN: NFAState, character:str=None) -> None:
+    def connect(self, nfaN: 'NFA', character:str=None) -> None:
         '''Connect a NFA with another using character'''
         self.stateE.add(character, nfaN.stateS)  # Conectar el estado final de este AFN con el estado inicial del otro
+    
 
     
     

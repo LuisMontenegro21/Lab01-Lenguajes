@@ -1,20 +1,10 @@
 from Algorithms.Postfix import infix_to_postfix
-from Automata.Automaton import Automaton, PNode
+# from Algorithms.Tree import build_syntax_tree
+from Automata.Automaton import Automaton
+from Automata.Nodes import Node 
 from typing import Optional
 
-class Node(PNode):
-    __slots__ = PNode.__slots__  + ('nullable', 'firstpos', 'lastpos', 'position') # inherit slots from parent class, make it faster due to making class immutable
 
-    def __init__(self, value: str, left:Optional['Node']=None, right:Optional['Node']=None) -> None:  
-        super().__init__(value=value, left=left,right=right) # gather upper constructor
-        self.nullable: bool = False
-        self.firstpos: set[int] = set()
-        self.lastpos: set[int] = set()
-        self.position: int = 0
-
-    def as_string(self) -> str:
-        '''Represents node as a string'''
-        return f"Node: {self.value} Position: {self.position} Firstpos: {self.firstpos} Lastpos: {self.lastpos} Nullable: {self.nullable}"
 
 class DDFA(Automaton):
 
@@ -23,7 +13,7 @@ class DDFA(Automaton):
         self.followpos_: dict[int, set[int]] = {} # to compute followpos after computing firstpos, lastpos, nullable
         self.position_map_: dict[int, str] = {} # map positions to values
         self.val_pos: dict[str, int] = {} # map values to positions
-        self.regex:str|list = None
+        self.regex:str = None
         self.root:Node = None
 
     def get_automata(self) -> 'DDFA':
@@ -31,33 +21,31 @@ class DDFA(Automaton):
     
     def print_automata(self) -> None:
         pass
+    
 
-    def build_syntax_tree(self, regex:str) -> list[Node]:
-        self.regex = regex # update the regex
-        self.regex += '#' # add final marker 
-        postfix:list[str] = infix_to_postfix(self.regex)
+    def build_syntax_tree(self, regex:str) -> Node:
+        postfix:list[str] = infix_to_postfix(regex)
         stack:list[Node] = []
 
         for char in postfix:
             
             if char not in self.precedence.keys():
                 stack.append(Node(char))
-            if char in {'*', '+', '?'}:
-                operand = stack.pop()
-                node = Node(char, operand)
-                stack.append(node)
-            if char in {'|', '.'}:
+
+            elif char in {'|', '.'}:
                 right = stack.pop()
                 left = stack.pop()
                 node = Node(char, left, right)
                 stack.append(node)
-        # return root
-        if stack:
-            root: Node = stack.pop()
-            self.root = root
-            return root
-        else:
-            return None
+
+            elif char in {'*', '+', '?'}:
+                operand = stack.pop()
+                node = Node(char, operand)
+                stack.append(node)
+
+        # set root
+        self.root = stack.pop() if stack else None
+        return self.root
     
     # calls like: assing_position(root, [0])
     def assign_positions(self, node: Node, counter: list[int]) -> None:
@@ -77,6 +65,7 @@ class DDFA(Automaton):
     def print_properties(self, node:Node) -> None:
         '''
         Function used to check the properties being correctly set 
+        Use for debugging or whatever
         '''
         if node is None:
             return
@@ -146,15 +135,20 @@ class DDFA(Automaton):
                 self.followpos_.setdefault(i, set()).update(node.firstpos)
 
     
-    def build(self, root: Node) -> None:
-        if root is None:
+    def build(self, regex:str) -> None:
+        self.regex = regex + '#' # add end marker character
+        self.root = self.build_syntax_tree(regex=self.regex) 
+        self.assign_positions(node=self.root, counter=[0]) # assign positions to nodes
+        self.nullable_firstpos_lastpos(node=self.root) # compute firstpos, lastpos, nullable
+        self.followpos(node=self.root) # compute followpos
+        if self.root is None:
             return {}
         
         dfa: dict = {}
         states: list[frozenset[int]] = []
         unmarked: list[frozenset[int]] = []
         accepting_states: set[frozenset[int]] = set()
-        start: frozenset = frozenset(root.firstpos)
+        start: frozenset = frozenset(self.root.firstpos)
         states.append(start)
         unmarked.append(start)
         dfa[start] = {}
@@ -204,12 +198,6 @@ class DDFA(Automaton):
 
 def build_direct_dfa(regex: str, w:Optional[str] = None):
     dfa = DDFA() # make instance
-    root: Node = dfa.build_syntax_tree(regex=regex) # gather root of tree
-    dfa.assign_positions(node=root, counter=[0]) # assign positions to nodes
-    dfa.nullable_firstpos_lastpos(node=root) # compute firstpos, lastpos, nullable
-    # dfa.print_properties(node=root) # print properties to make sure they're correct
-    dfa.followpos(node=root) # compute followpos
-    # print(f"Followpos: {dfa.followpos_}") # print followpos
-    dfa.build(root=root) # build DFA
+    dfa.build(regex=regex) # build DFA from a dfa
     if w:
         print(f"{dfa.accepts(w=w)}")

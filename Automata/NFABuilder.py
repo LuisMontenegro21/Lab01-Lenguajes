@@ -1,158 +1,109 @@
 # Archivo Python que corre o emplea el algoritmo Thompson para generar un AFN (Automata Finito No-Determinista)
 from Automata.NFA import NFAState, NFA
-from Automata.Automaton import PNode, Automaton
+from Automata.Automaton import Automaton
+from Automata.Nodes import PNode, LitNode, BinaryNode, UnaryNode
+from Algorithms.Tree import build_syntax_tree
 
-
-class LitNode(PNode):
-    __slots__ = PNode.__slots__ + ('value')
-    def __init__(self, value: str):
-        self.value = value
-    
-    def as_string(self) -> str:
-        return self.value
-
-class ConcatNode(PNode):
-    __slots__ = PNode.__slots__ + ('left', 'right')
-    def __init__(self, left:PNode, right:PNode):
-        self.left = left
-        self.right = right
-    
-    def as_string(self) -> str:
-        return f"({self.left.as_string()}.{self.right.as_string()})"
-
-class UniNode(PNode):
-    __slots__ = PNode.__slots__ + ('left', 'right')
-    def __init__(self, left:PNode, right:PNode):
-        self.left = left
-        self.right = right
-    
-    def as_string(self) -> str:
-        return f"({self.left.as_string()}|{self.right.as_string()})"
-
-class StarNode(PNode):
-    __slots__ = PNode.__slots__ + ('child')
-    def __init__(self, child:PNode):
-        self.child = child
-    
-    def as_string(self) -> str:
-        return f"({self.child.as_string()})*"
-    
-class PlusNode(PNode):
-    __slots__ = PNode.__slots__ + ('child')
-    def __init__(self, child:PNode):
-        self.child = child
-    
-    def as_string(self):
-        return f"({self.child.as_string()})"
-
-class OptiNode(PNode):
-    __slots__ = PNode.__slots__ + ('child')
-    def __init__(self, child:PNode):
-        self.child = child
-    
-    def as_string(self):
-        return f"({self.child.as_string()})"
-
+EPSILON = None
 
 class NFABuilder(Automaton):
 
     def __init__(self):
-        self.nfa: NFA = None
+        self.nfa: NFA = None # holds final dfa
+        
     
-
     def thompson(self, node: PNode) -> NFA:
         '''Implement Thomson's algorithm '''
+
         if isinstance(node, LitNode):
             return NFA.create_character(node.value)  
         
-        if isinstance(node, ConcatNode):
+        elif isinstance(node, BinaryNode) and node.operator == '.':
             nfaL = self.thompson(node.left)
             nfaR = self.thompson(node.right)
-            nfaL.conection(nfaR)
+            nfaL.connect(nfaR)
             return NFA(nfaL.stateS, nfaR.stateE)
         
-        if isinstance(node, UniNode):
+        elif isinstance(node, BinaryNode) and node.operator == '|':
             nfaL = self.thompson(node.left)
             nfaR = self.thompson(node.right)
             start = NFAState()
             end = NFAState()
-            start.add(None, nfaL.stateS)
-            start.add(None, nfaR.stateS)
-            nfaL.stateE.add(None, end)
-            nfaR.stateE.add(None, end)
+            start.add(EPSILON, nfaL.stateS)
+            start.add(EPSILON, nfaR.stateS)
+            nfaL.stateE.add(EPSILON, end)
+            nfaR.stateE.add(EPSILON, end)
             return NFA(start, end)
 
-        if isinstance(node, StarNode):
+        elif isinstance(node, UnaryNode) and node.operator == '*':
             nfaExp: NFA = self.thompson(node.child)
             start = NFAState()
             end = NFAState()
-            start.add(None, nfaExp.stateS)
-            start.add(None, end)
-            nfaExp.stateE.add(None, nfaExp.stateS)
-            nfaExp.stateE.add(None, end)  
+            start.add(EPSILON, nfaExp.stateS)
+            start.add(EPSILON, end)
+            nfaExp.stateE.add(EPSILON, nfaExp.stateS)
+            nfaExp.stateE.add(EPSILON, end)  
             return NFA(start, end)
             
-        if isinstance(node, PlusNode):
+
+        elif isinstance(node, UnaryNode) and node.operator == '+':
             nfaExpr = self.thompson(node.child)
             start = NFAState()
             end = NFAState()
-            start.add(None, nfaExpr.stateS)
-            nfaExpr.stateE.add(None, nfaExpr.stateS)
-            nfaExpr.stateE.add(None, end)
+            start.add(EPSILON, nfaExpr.stateS)
+            nfaExpr.stateE.add(EPSILON, nfaExpr.stateS)
+            nfaExpr.stateE.add(EPSILON, end)
             return NFA(start, end)
         
-        if isinstance(node, OptiNode):
+        elif isinstance(node, UnaryNode) and node.operator == '?':
             nfaExpr = self.thompson(node.child)
             start = NFAState()
             end = NFAState()
-            start.add(None, nfaExpr.stateS)
-            nfaExpr.stateE.add(None, end)
-            start.add(None, end)
+            start.add(EPSILON, nfaExpr.stateS)
+            nfaExpr.stateE.add(EPSILON, end)
+            start.add(EPSILON, end)
             return NFA(start, end)
+        else:
+            raise TypeError(f"Unknown type: {type(node).__name__}")
 
-    def accepts(self, afnValue) -> bool:
-        # Conjunto de estados actuales, inicializado con el estado inicial del AFN
-        thisSs = set([self.nfa.stateS])  
-        # Calcular cierre epsilon de los estados iniciales
-        thisSs = self.put_epsilon(thisSs)  
-
-        for character in afnValue:
-            nextSs = set()
-            for state in thisSs:
-                if character in state.transitions:
-                    for nextS in state.transitions[character]:
-                        nextSs.add(nextS)
-            # Calcular cierre epsilon de los nuevos estados alcanzados
-            nextSs = self.put_epsilon(nextSs)
-            # Actualizar los estados actuales
-            thisSs = nextSs  
-
-        for state in thisSs:
-            return state.final
-    
-
-    def put_epsilon(self, states):
-        # Inicializar una pila con los estados iniciales
-        stack: list[NFAState] = list(states)
-        # Crear un conjunto con los estados iniciales
-        putEpsilon = set(states)
-
+    def epsilon_closure(self, states: set['NFAState']) -> set['NFAState']:
+        '''
+        Computes epsilon closure for a set of states. 
+        '''
+        stack = list(states)
+        closure = set(states)
         while stack:
-            # Tomar un estado de la pila
             state: NFAState = stack.pop()
-            if (None) in state.transitions:
-                # Si el estado tiene una transición epsilon (None), explorarlas
-                for nextS in state.transitions[None]:
-                    if nextS not in putEpsilon:
-                        # Si el estado siguiente no está en el conjunto de cierre epsilon, agregarlo
-                        putEpsilon.add(nextS)
-                        # Agregar el estado siguiente a la pila para explorar sus transiciones epsilon
-                        stack.append(nextS)
-        # Devolver el conjunto resultante de estados con cierre epsilon
-        return putEpsilon
+            for next_state in state.transitions.get(None, []): # None is epsilon in this case
+                if next_state not in closure:
+                    closure.add(next_state)
+                    stack.append(next_state)
+        return closure
 
-    def build(self, root:PNode):
-        return self.thompson(root)
+    def move(self, states: set['NFAState'], symbol:str) -> set['NFAState']:
+        '''
+        Get reachable states given a symbol
+        '''
+        result = set()
+        for state in states:
+            for next_state in state.transitions.get(symbol, []):
+                result.add(next_state)
+        return result
+
+
+    def accepts(self, w: str) -> bool:
+        current_states: set[NFAState] = self.epsilon_closure(states={self.nfa.stateS}) 
+        for symbol in w:
+            next_states: set[NFAState] = self.move(current_states, symbol)
+            current_states: set[NFAState] = self.epsilon_closure(next_states)
+
+        return any(state.final for state in current_states)
+
+
+    def build(self, regex:str):
+        root: PNode = build_syntax_tree(regex=regex) # build a tree and get the root
+        self.nfa = self.thompson(node=root)
+    
     
     def print_automata(self):
         pass
@@ -162,6 +113,7 @@ class NFABuilder(Automaton):
 
 
 # para construir utilizando thompson
-def buildUsingThompson(regex: str, w:str):
-
-    raise NotImplementedError()
+def build_nfa(regex: str, w:str):
+    nfa_builder = NFABuilder()
+    nfa_builder.build(regex=regex)
+    print(nfa_builder.accepts(w=w))

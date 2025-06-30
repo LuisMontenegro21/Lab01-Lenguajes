@@ -1,6 +1,6 @@
 #Archivo Python cuya función es concretar la ejecución del programa
-from Automata.Thompson import buildUsingThompson
-from Automata.DirectConst import build_direct_dfa
+from Automata.NFABuilder import build_nfa
+from Automata.DDFA import build_direct_dfa
 
 
 
