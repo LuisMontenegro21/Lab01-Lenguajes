@@ -4,18 +4,19 @@ from Automata.Automaton import Automaton
 from Automata.Nodes import PNode, LitNode, BinaryNode, UnaryNode
 from Algorithms.Tree import build_syntax_tree
 
-EPSILON = None
+EPSILON = None # defines Epsilon
 
 class NFABuilder(Automaton):
 
     def __init__(self):
-        self.nfa: NFA = None # holds final dfa
+        self.nfa: NFA = NFA() # holds final dfa
         
     
     def thompson(self, node: PNode) -> NFA:
         '''Implement Thomson's algorithm '''
 
         if isinstance(node, LitNode):
+            self.nfa.alphabet.add(node.value)
             return NFA.create_character(node.value)  
         
         elif isinstance(node, BinaryNode) and node.operator == '.':
@@ -92,17 +93,23 @@ class NFABuilder(Automaton):
 
 
     def accepts(self, w: str) -> bool:
+        '''
+        Checks if a string is accepted or not by the NFA
+        '''
+        # starts with closure of the first states
         current_states: set[NFAState] = self.epsilon_closure(states={self.nfa.stateS}) 
+        # checks symbol for symbol if there is a transition for it
         for symbol in w:
             next_states: set[NFAState] = self.move(current_states, symbol)
             current_states: set[NFAState] = self.epsilon_closure(next_states)
-
+        # check if any of the current_states yields a final state
         return any(state.final for state in current_states)
 
 
     def build(self, regex:str):
         root: PNode = build_syntax_tree(regex=regex) # build a tree and get the root
-        self.nfa = self.thompson(node=root)
+        self.nfa = self.thompson(node=root) # TODO check this assignment if it is not giving overhead 
+        # print(f"Alphabet: {self.nfa.alphabet}")
     
     
     def print_automata(self):
@@ -112,8 +119,11 @@ class NFABuilder(Automaton):
         return self.nfa
 
 
+
+
 # para construir utilizando thompson
-def build_nfa(regex: str, w:str):
+def build_nfa(regex: str, w:str) -> NFA:
     nfa_builder = NFABuilder()
     nfa_builder.build(regex=regex)
-    print(nfa_builder.accepts(w=w))
+    print(nfa_builder.accepts(w=w)) 
+    return nfa_builder.get_automata()
