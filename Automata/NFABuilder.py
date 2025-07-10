@@ -113,8 +113,10 @@ class NFABuilder(Automaton):
     
     
     def print_automata(self):
-        pass
-    
+        print(f"Final states: {self.nfa.final_states}")
+        print(f"Starting state: {self.nfa.start_state}")
+        print(f"Alphabet: {self.nfa.alphabet}")
+
     def get_automata(self) -> NFA:
         return self.nfa
 

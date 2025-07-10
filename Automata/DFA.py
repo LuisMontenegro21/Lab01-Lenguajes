@@ -1,12 +1,29 @@
 from Automata.NFA import NFA, NFAState
 from Automata.Automaton import Automaton
+from collections import defaultdict
 
+class DFAState:
+    __slots__ = ('id', 'final', 'transitions', 'label')
+    def __init__(self, id: int, final:bool = False) -> None:
+        self.id = id
+        self.final = final
+        self.transitions = defaultdict(set)
+        self.label: str = f"q{id}"
+    
+    def add_transition(self, symbol: str, target: 'DFAState') -> None:
+        self.transitions[symbol].add(target)
+
+    def get_state_as_string(self) -> str:
+        return f"State({self.id})"
+    
 class DFA(Automaton):
     # tomar los parametros para construir el DFA con el método de subconjuntos
+    __slots__ = ('initial_state', 'states', 'transitions', 'final_states')
+
     def __init__(self):
         self.initial_state: int = 0
         self.states: set = set()
-        self.transitions: dict[str, set] = {} # a dictionary mapping the character to the set of reachable states
+        self.transitions: dict[str, set[frozenset]] = {} # a dictionary mapping the character to the set of reachable states
         self.final_states: set = set()
 
 
@@ -42,9 +59,10 @@ class DFA(Automaton):
         initial_closure: set[NFAState] = self.epsilon_closure(state={nfa.stateS})
         unmarked_states:list[frozenset] = [frozenset(initial_closure)]
         dfa_states:list[frozenset] = [frozenset(initial_closure)]
-        dfa_transitions:list[tuple] = []
+        dfa_transitions: dict[str, set] = {}
         state_map: dict[frozenset, str] = {frozenset(initial_closure): 0}  # Mapear los frozensets a identificadores de strings
         state_count: int = 1
+        states:set = set()
 
         while unmarked_states:
             current_frozenset: frozenset = unmarked_states.pop(0) # pop first state
@@ -67,23 +85,34 @@ class DFA(Automaton):
                     dfa_states.append(closure_result)
                     unmarked_states.append(closure_result)
 
-                # add transitions ('from', 'symbol', 'to_state')
-                dfa_transitions.append((current_state, symbol, state_map[closure_result]))
+                # append transitions
+                dfa_transitions.setdefault(current_state, set()).add((symbol, state_map[closure_result]))
+  
 
         # se agrega los estados finales en los sets donde se hallen los estados de intersección de los finales del nfa y los estados del dfa
         nfa_final = nfa.stateE 
         final_states = [state_map[state] for state in dfa_states if nfa_final in state]
-        self.states = list(state_map.values())
+        self.states = list(state_map.values()) # change this
         self.transitions = dfa_transitions
         self.initial_state = 0 
         self.final_states = final_states
         
     
-    def accepts(self) -> None:
+    def accepts(self, w:str) -> None:
         print(self.states)
         print(self.transitions)
         print(self.initial_state)
         print(self.final_states)
+        current_state = initial_state
+        for char in w:
+            if char not in current_state.transitons:
+                return False
+            next_states = current_state.transitions[char]
+            current_state = next(iter(next_states))
+        
+        return current_state.final
+    
+
         
 
     def print_automata(self):
@@ -95,5 +124,5 @@ class DFA(Automaton):
 def build_dfa(nfa: NFA, w: str) -> None:
     dfa = DFA()
     dfa.build(nfa=nfa)
-    dfa.accepts()
+    dfa.accepts(w=w)
 

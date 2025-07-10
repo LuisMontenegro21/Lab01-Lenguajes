@@ -23,7 +23,7 @@ class NFAState:
 
 class NFA:
     start_state:int = 0
-    final_states:set = {}
+    final_states:set = set()
     alphabet:set = set()
 
     @staticmethod
@@ -43,8 +43,8 @@ class NFA:
         '''
         self.stateS = start or NFAState() # create a default state if not given
         self.stateE = end or NFAState()  # create a default state if not given
-        self.stateE.final = True  # Marcar el estado final como final
-        self.final_states.add(self.stateE)
+        self.stateE.final = True  # mark final state 
+        self.final_states.add(self.stateE) # add to final states
 
     def connect(self, nfaN: 'NFA', character:str=None) -> None:
         '''Connect a NFA with another using character'''
