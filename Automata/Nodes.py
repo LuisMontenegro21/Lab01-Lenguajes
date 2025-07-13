@@ -15,7 +15,6 @@ class PNode:
         print(f"Node: {self.value}")
 
 
-
 class Node(PNode):
     '''
     Node used for the Direct DFA

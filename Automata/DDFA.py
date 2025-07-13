@@ -16,10 +16,10 @@ class DDFA(Automaton):
         self.regex:str = None
         self.root:Node = None
 
-    def get_automata(self) -> 'DDFA':
+    def get_automaton(self) -> 'DDFA':
         return self
     
-    def print_automata(self) -> None:
+    def print_automaton(self) -> None:
         pass
     
 
@@ -134,7 +134,7 @@ class DDFA(Automaton):
             for i in node.lastpos:
                 self.followpos_.setdefault(i, set()).update(node.firstpos)
 
-    
+    # TODO change lists to sets instead
     def build(self, regex:str) -> None:
         self.regex = regex + '#' # add end marker character
         self.root = self.build_syntax_tree(regex=self.regex) 

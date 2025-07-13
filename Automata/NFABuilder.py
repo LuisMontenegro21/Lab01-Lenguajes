@@ -112,12 +112,12 @@ class NFABuilder(Automaton):
         # print(f"Alphabet: {self.nfa.alphabet}")
     
     
-    def print_automata(self):
+    def print_automaton(self):
         print(f"Final states: {self.nfa.final_states}")
         print(f"Starting state: {self.nfa.start_state}")
         print(f"Alphabet: {self.nfa.alphabet}")
 
-    def get_automata(self) -> NFA:
+    def get_automaton(self) -> NFA:
         return self.nfa
 
 
@@ -128,4 +128,4 @@ def build_nfa(regex: str, w:str) -> NFA:
     nfa_builder = NFABuilder()
     nfa_builder.build(regex=regex)
     print(nfa_builder.accepts(w=w)) 
-    return nfa_builder.get_automata()
+    return nfa_builder.get_automaton()

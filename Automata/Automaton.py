@@ -2,23 +2,6 @@
 # Automaton class to define general properties and classes
 # used among all other automata types
 # ---------------------------------------------------------
-from typing import Optional
-
-class PNode:
-
-    '''
-    Base parent class for a Node
-    '''
-    __slots__ = ('value', 'left', 'right') # use slots to avoid __dict__ being generated. New class attributes become dynamically immutable
-
-    def __init__(self, value: Optional[str], left: Optional['PNode'] = None, right: Optional['PNode'] = None) -> None:
-        self.value = value
-        self.left: PNode = left
-        self.right: PNode = right
-    
-    def as_string(self) -> None:
-        raise NotImplementedError()
-
 
 class Automaton:
     def __init__(self)->None:
@@ -28,10 +11,10 @@ class Automaton:
         self.start: frozenset = frozenset()
         self.dfa: dict = {}
 
-    def get_automata(self) -> None:
+    def get_automaton(self) -> None:
         raise NotImplementedError()
     
-    def print_automata(self) -> None:
+    def print_automaton(self) -> None:
         raise NotImplementedError()
     
     def accepts(self) -> None:

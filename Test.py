@@ -9,7 +9,7 @@ def main():
     w:str = input(f"Ingrese una cadena para probar: ")
     # build_direct_dfa(regex=regex, w=w)
     nfa = build_nfa(regex=regex, w=w)
-    build_dfa(nfa=nfa, w=w)
+    dfa = build_dfa(nfa=nfa, w=w)
 
     
 
