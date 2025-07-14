@@ -6,30 +6,62 @@ class MinDFA(DFA):
         super().__init__()
         self.unreachable_states: set = set()
 
-    def build(self) -> None:
+    def build(self, dfa: DFA) -> None:
         '''
-        Uses Hopcrofts algorithm 
+        Uses Hopcrofts algorithm and then builds the minimized automaton
         '''
-        P:set = {self.final_states, self.states - self.final_states}
-        W:set = {self.final_states, self.states - self.final_states}
+
+        # Start the Hopcroft Algorithm
+        P:set = {frozenset(dfa.final_states), frozenset(dfa.states - dfa.final_states)}
+        W:set = P.copy()
         
         while W:
-            A = W.pop() # choose and remove a set A from W
-            for char in self.alphabet:
-                X:set = {s for s in self.states if self.transitions.get(s, {}).get(char) in A } # transitions on c that lead to a state in A
+            A:set = W.pop() # choose and remove a set A from W
+            for char in dfa.alphabet:
+                X:set = {s for s in self.states if dfa.transitions.get(s).get(char) in A } # transitions on c that lead to a state in A
+  
                 for Y in P:
-                    intrsct: set = X & Y
-                    diffrnc: set = Y - X
+
+                    intrsct: frozenset = frozenset(X & Y)
+                    diffrnc: frozenset = frozenset(Y - X)
                     if len(intrsct) > 0 and len(diffrnc) > 0:
+
                         if Y in W:
-                            P.remove(Y) # change Y for X & Y and Y - X
-                            P.add(intrsct)
-                            P.add(diffrnc)
+                            W.remove(Y) # change Y for X & Y and Y - X
+                            # W.update([intrsct, diffrnc])
+                            W.add(intrsct)
+                            W.add(diffrnc)
                         else:
                             if len(intrsct) <= len(diffrnc):
                                 W.add(intrsct)
                             else:
                                 W.add(diffrnc)
+           
+        # Finish the hopcroft algorithm
+
+        # build the automaton's new transitions and states
+        minimized_states: list = list(P)
+        minimized_transitions:dict = {}
+        minimized_final_states: set = set()
+        state_map: dict = {s: i for i, group in enumerate(minimized_states) for s in group}
+        print(f"State Map: {state_map}")
+        print(f"alphabet: {dfa.alphabet}")
+        print(f"P: {P}")
+        for group in minimized_states:
+            rep = next(iter(group))
+            src = state_map[rep]
+            minimized_transitions[src] = {}
+            for symbol in dfa.alphabet:
+                target = dfa.transitions.get(rep, {}).get(symbol)
+                if target is not None:
+                    dst = state_map[target]
+                    minimized_transitions[src][symbol] = dst
+            if group & dfa.final_states:
+                minimized_final_states.add(src)
+        self.states = set(range(len(minimized_states)))
+        self.transitions = minimized_transitions
+        self.final_states = minimized_final_states
+        self.initial_state = state_map[self.initial_state]
 
 
     def set_reachable_states(self) -> None:
@@ -52,8 +84,13 @@ class MinDFA(DFA):
     def get_automaton(self) -> 'MinDFA':
         return self
 
-    def print_automata(self) -> None:
-        pass
+    def print_automaton(self) -> None:
+        print(f"States : {self.states}")
+        print(f"Transitions : {self.transitions}")
+        print(f"Initial state : {self.initial_state}")
+        print(f"Final state : {self.final_states}")
 
 def build_min_dfa(dfa: DFA) -> MinDFA:
-    pass
+    min_dfa = MinDFA()
+    min_dfa.build(dfa=dfa)
+    min_dfa.print_automaton()
