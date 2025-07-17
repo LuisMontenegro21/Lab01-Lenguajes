@@ -86,9 +86,10 @@ class DFA(Automaton):
  
         state: int = self.initial_state
         for char in w:
-            if char not in self.transitions.get(state, {}):
+            if char not in self.transitions.get(state, 0):
+                print(f"Halting on char '{char}' since no transition was found")
                 return False
-            state:int = self.transitions[state].get(char)
+            state = self.transitions[state].get(char)
             
         return state in self.final_states
      
@@ -101,9 +102,10 @@ class DFA(Automaton):
     def get_automaton(self) -> 'DFA':
         return self
         
-def build_dfa(nfa: NFA, w: str) -> DFA:
+def build_dfa(nfa: NFA, w: str = None) -> DFA:
     dfa = DFA()
     dfa.build(nfa=nfa)
-    print(dfa.accepts(w=w))
+    if w:
+        print(dfa.accepts(w=w))
     return dfa.get_automaton()
 

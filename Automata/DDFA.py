@@ -196,8 +196,8 @@ class DDFA(Automaton):
 
 
 
-def build_direct_dfa(regex: str, w:Optional[str] = None):
+def build_direct_dfa(regex: str, w:Optional[str] = None) -> None:
     dfa = DDFA() # make instance
     dfa.build(regex=regex) # build DFA from a dfa
     if w:
-        print(f"{dfa.accepts(w=w)}")
+        print(dfa.accepts(w=w))

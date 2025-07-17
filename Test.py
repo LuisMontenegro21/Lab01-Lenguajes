@@ -11,7 +11,7 @@ def main():
     # build_direct_dfa(regex=regex, w=w)
     nfa = build_nfa(regex=regex, w=w)
     dfa = build_dfa(nfa=nfa, w=w)
-    min_dfa = build_min_dfa(dfa=dfa)
+    min_dfa = build_min_dfa(dfa=dfa, w=w)
 
     
 
