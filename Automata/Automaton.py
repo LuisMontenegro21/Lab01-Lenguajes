@@ -6,10 +6,10 @@
 class Automaton:
     def __init__(self)->None:
         self.precedence: dict[int, str]  = {'|': 1, '.': 2, '*': 3, '+': 3, '?': 3} # keep track of operator precedence 
-        self.states: list[frozenset[int]] = []
-        self.accepting_states: set[frozenset[int]] = set()
-        self.start: frozenset = frozenset()
-        self.dfa: dict = {}
+        self.states: set[frozenset[int]] = {}
+        self.final_states: set[frozenset[int]] = set()
+        self.initial_state: frozenset = frozenset()
+        self.transitions: dict = {}
 
     def get_automaton(self) -> None:
         raise NotImplementedError()

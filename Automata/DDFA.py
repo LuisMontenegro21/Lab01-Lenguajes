@@ -7,6 +7,7 @@ from typing import Optional
 
 
 class DDFA(Automaton):
+    __slots__ = ('followpos_', 'position_map_', 'val_pos', 'regex', 'root', 'initial_state', 'final_state', 'transitions', 'states', 'alphabet')
 
     def __init__(self) -> None:
         super().__init__() # get Automaton constructor
@@ -20,7 +21,10 @@ class DDFA(Automaton):
         return self
     
     def print_automaton(self) -> None:
-        pass
+        print(f"States: {self.states}")
+        print(f"Transitions: {self.transitions}")
+        print(f"Initial state: {self.initial_state}")
+        print(f"Final states: {self.final_states}")
     
 
     def build_syntax_tree(self, regex:str) -> Node:
@@ -134,7 +138,6 @@ class DDFA(Automaton):
             for i in node.lastpos:
                 self.followpos_.setdefault(i, set()).update(node.firstpos)
 
-    # TODO change lists to sets instead
     def build(self, regex:str) -> None:
         self.regex = regex + '#' # add end marker character
         self.root = self.build_syntax_tree(regex=self.regex) 
@@ -144,14 +147,14 @@ class DDFA(Automaton):
         if self.root is None:
             return {}
         
-        dfa: dict = {}
-        states: list[frozenset[int]] = []
-        unmarked: list[frozenset[int]] = []
+        transitions: dict = {}
+        states: set[frozenset[int]] = set()
+        unmarked: set[frozenset[int]] = set()
         accepting_states: set[frozenset[int]] = set()
         start: frozenset = frozenset(self.root.firstpos)
-        states.append(start)
-        unmarked.append(start)
-        dfa[start] = {}
+        states.add(start)
+        unmarked.add(start)
+        transitions[start] = {}
 
         end_marker_pos: int = self.val_pos.get('#', 0) # get end marker position
         
@@ -168,29 +171,29 @@ class DDFA(Automaton):
             for symbol, positions in symbol_map.items():
                 positions_frozen = frozenset(positions)
                 if positions_frozen not in states:
-                    states.append(positions_frozen)
-                    unmarked.append(positions_frozen)
-                    dfa[positions_frozen] = {}
-                dfa[current][symbol] = positions_frozen
+                    states.add(positions_frozen)
+                    unmarked.add(positions_frozen)
+                    transitions[positions_frozen] = {}
+                transitions[current][symbol] = positions_frozen
             
             if end_marker_pos in current:
                 accepting_states.add(current)
 
         # update self's attributes 
-        self.accepting_states = accepting_states
+        self.final_states = accepting_states
         self.states = states
-        self.start = start
-        self.dfa = dfa
+        self.initial_state = start
+        self.transitions = transitions
     
     def accepts(self, w: str | list) -> bool:
         if isinstance(w, str):
             w: list[str] = list(w) # convert to list if not already
-        current: frozenset = self.start
+        current: frozenset = self.initial_state
         for chr in w:
-            if chr not in self.dfa[current]:
+            if chr not in self.transitions[current]:
                 return False
-            current = self.dfa[current][chr]
-        return current in self.accepting_states # check if our current state matches an accepting state
+            current = self.transitions[current][chr]
+        return current in self.final_states # check if our current state matches an accepting state
 
 
 
@@ -199,5 +202,7 @@ class DDFA(Automaton):
 def build_direct_dfa(regex: str, w:Optional[str] = None) -> None:
     dfa = DDFA() # make instance
     dfa.build(regex=regex) # build DFA from a dfa
+    # dfa.print_automaton()
     if w:
         print(dfa.accepts(w=w))
+    

@@ -8,10 +8,10 @@ from Automata.MinDFA import build_min_dfa
 def main():
     regex:str = input("Input regex: ")
     w:str = input(f"Ingrese una cadena para probar: ")
-    # build_direct_dfa(regex=regex, w=w)
-    nfa = build_nfa(regex=regex, w=w)
-    dfa = build_dfa(nfa=nfa, w=w)
-    min_dfa = build_min_dfa(dfa=dfa, w=w)
+    build_direct_dfa(regex=regex, w=w)
+    # nfa = build_nfa(regex=regex, w=w)
+    # dfa = build_dfa(nfa=nfa, w=w)
+    # min_dfa = build_min_dfa(dfa=dfa, w=w)
 
     
 

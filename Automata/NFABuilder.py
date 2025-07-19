@@ -8,6 +8,8 @@ EPSILON = None # defines Epsilon
 
 class NFABuilder(Automaton):
 
+    __slots__ = ('nfa',)
+
     def __init__(self):
         self.nfa: NFA = NFA() # holds final dfa
         
