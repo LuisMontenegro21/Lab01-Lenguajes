@@ -1,4 +1,5 @@
 from Automata.DFA import DFA
+from Graph.Vizualizer import visualize_automaton
 
 class MinDFA(DFA):
     __slots__ = DFA.__slots__ + ('unreachable_states', 'reverse_transitions')
@@ -6,7 +7,7 @@ class MinDFA(DFA):
         super().__init__()
         self.unreachable_states: set = set()
         self.reverse_transitions: dict = {}
-        
+    
 
     def build(self, dfa: DFA) -> None:
         '''
@@ -129,9 +130,11 @@ class MinDFA(DFA):
         print(f"Initial state : {self.initial_state}")
         print(f"Final state : {self.final_states}")
 
-def build_min_dfa(dfa: DFA, w:str=None) -> MinDFA:
+def build_min_dfa(dfa: DFA, w:str=None, visualize:bool=False) -> MinDFA:
     min_dfa = MinDFA()
     min_dfa.build(dfa=dfa)
     if w:
         print(min_dfa.accepts(w=w))
+    if visualize:
+        visualize_automaton(min_dfa.get_automaton())
     return min_dfa.get_automaton()

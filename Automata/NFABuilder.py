@@ -3,6 +3,7 @@ from Automata.NFA import NFAState, NFA
 from Automata.Automaton import Automaton
 from Automata.Nodes import PNode, LitNode, BinaryNode, UnaryNode
 from Algorithms.Tree import build_syntax_tree
+from Graph.Vizualizer import visualize_automaton
 
 EPSILON = None # defines Epsilon
 
@@ -123,11 +124,12 @@ class NFABuilder(Automaton):
         return self.nfa
 
 
-
-
-# para construir utilizando thompson
-def build_nfa(regex: str, w:str) -> NFA:
+def build_nfa(regex: str, w:str = None, visualize:bool=False) -> NFA:
     nfa_builder = NFABuilder()
     nfa_builder.build(regex=regex)
-    print(nfa_builder.accepts(w=w)) 
+    if w:
+        print(nfa_builder.accepts(w=w))
+    if visualize:
+        visualize_automaton(automata=nfa_builder.get_automaton()) 
+
     return nfa_builder.get_automaton()

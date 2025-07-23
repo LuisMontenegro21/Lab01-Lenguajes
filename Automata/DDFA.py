@@ -1,8 +1,9 @@
 from Algorithms.Postfix import infix_to_postfix
+from Graph.Vizualizer import visualize_automaton
 # from Algorithms.Tree import build_syntax_tree
 from Automata.Automaton import Automaton
 from Automata.Nodes import Node 
-from typing import Optional
+
 
 
 
@@ -191,6 +192,7 @@ class DDFA(Automaton):
         current: frozenset = self.initial_state
         for chr in w:
             if chr not in self.transitions[current]:
+                print(f"Halting on char '{chr}' since no transition was found")
                 return False
             current = self.transitions[current][chr]
         return current in self.final_states # check if our current state matches an accepting state
@@ -199,10 +201,13 @@ class DDFA(Automaton):
 
 
 
-def build_direct_dfa(regex: str, w:Optional[str] = None) -> None:
+def build_direct_dfa(regex: str, w:str = None, visualize:bool = False) -> None:
     dfa = DDFA() # make instance
     dfa.build(regex=regex) # build DFA from a dfa
-    # dfa.print_automaton()
+    dfa.print_automaton()
     if w:
         print(dfa.accepts(w=w))
+    if visualize:
+        visualize_automaton(automata=dfa.get_automaton())
+
     

@@ -1,6 +1,6 @@
 from Automata.NFA import NFA, NFAState
 from Automata.Automaton import Automaton
-
+from Graph.Vizualizer import visualize_automaton
 
 class DFA(Automaton):
     # tomar los parametros para construir el DFA con el método de subconjuntos
@@ -102,10 +102,12 @@ class DFA(Automaton):
     def get_automaton(self) -> 'DFA':
         return self
         
-def build_dfa(nfa: NFA, w: str = None) -> DFA:
+def build_dfa(nfa: NFA, w: str = None, visualize:bool=False) -> DFA:
     dfa = DFA()
     dfa.build(nfa=nfa)
     if w:
         print(dfa.accepts(w=w))
+    if visualize:
+        visualize_automaton(automata=dfa.get_automaton())
     return dfa.get_automaton()
 
