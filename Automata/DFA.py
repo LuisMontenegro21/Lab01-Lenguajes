@@ -105,6 +105,7 @@ class DFA(Automaton):
 def build_dfa(nfa: NFA, w: str = None, visualize:bool=False) -> DFA:
     dfa = DFA()
     dfa.build(nfa=nfa)
+    dfa.print_automaton()
     if w:
         print(dfa.accepts(w=w))
     if visualize:

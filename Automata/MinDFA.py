@@ -8,7 +8,7 @@ class MinDFA(DFA):
         self.unreachable_states: set = set()
         self.reverse_transitions: dict = {}
     
-
+    #TODO fix this, it does not work 100%
     def build(self, dfa: DFA) -> None:
         '''
         Uses Hopcrofts algorithm and then builds the minimized automaton
@@ -133,6 +133,7 @@ class MinDFA(DFA):
 def build_min_dfa(dfa: DFA, w:str=None, visualize:bool=False) -> MinDFA:
     min_dfa = MinDFA()
     min_dfa.build(dfa=dfa)
+    min_dfa.print_automaton()
     if w:
         print(min_dfa.accepts(w=w))
     if visualize:

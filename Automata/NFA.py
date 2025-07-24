@@ -22,9 +22,10 @@ class NFAState:
 
 
 class NFA:
-    start_state:int = 0
+    initial_state:int = 0
     final_states:set = set()
     alphabet:set = set()
+    transitions:dict[str, dict[str, int]] = {}
 
     @staticmethod
     def create_character(character: str) -> 'NFA':

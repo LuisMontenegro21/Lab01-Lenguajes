@@ -1,6 +1,5 @@
 from Algorithms.Postfix import infix_to_postfix
 from Graph.Vizualizer import visualize_automaton
-# from Algorithms.Tree import build_syntax_tree
 from Automata.Automaton import Automaton
 from Automata.Nodes import Node 
 
@@ -139,7 +138,7 @@ class DDFA(Automaton):
             for i in node.lastpos:
                 self.followpos_.setdefault(i, set()).update(node.firstpos)
 
-    def build(self, regex:str) -> None:
+    def build(self, regex:str, visualize:bool = False) -> None:
         self.regex = regex + '#' # add end marker character
         self.root = self.build_syntax_tree(regex=self.regex) 
         self.assign_positions(node=self.root, counter=[0]) # assign positions to nodes
@@ -179,13 +178,33 @@ class DDFA(Automaton):
             
             if end_marker_pos in current:
                 accepting_states.add(current)
+        
+        if visualize:
+            # transform frozensets to integers for better visuals (only necessary if visualizing the dfa)
+            all_states = list(transitions.keys()) + [v for d in transitions.values() for v in d.values()]
+            unique_states = sorted(set(all_states), key=lambda x: sorted(x))
+            state_map = {s: i for i, s in enumerate(unique_states)}
 
-        # update self's attributes 
-        self.final_states = accepting_states
-        self.states = states
-        self.initial_state = start
-        self.transitions = transitions
-    
+            new_transitions: dict = {}
+            for src_set, edge_dict in transitions.items():
+                src_id = state_map[src_set]
+                new_transitions[src_id] = {}
+                for symbol, dst_set in edge_dict.items():
+                    dst_id = state_map[dst_set]
+                    new_transitions[src_id][symbol] = dst_id
+            
+            # update self's attributes 
+            self.final_states = {state_map[s] for s in accepting_states}
+            self.states = set(state_map.values())
+            self.initial_state = state_map[start]
+            self.transitions = new_transitions
+        else:
+            # update self's attributes (harder to visualize)
+            self.final_states = accepting_states
+            self.states = states
+            self.initial_state = start
+            self.transitions = transitions
+
     def accepts(self, w: str | list) -> bool:
         if isinstance(w, str):
             w: list[str] = list(w) # convert to list if not already
@@ -203,7 +222,7 @@ class DDFA(Automaton):
 
 def build_direct_dfa(regex: str, w:str = None, visualize:bool = False) -> None:
     dfa = DDFA() # make instance
-    dfa.build(regex=regex) # build DFA from a dfa
+    dfa.build(regex=regex, visualize=visualize) # build DFA from a dfa
     dfa.print_automaton()
     if w:
         print(dfa.accepts(w=w))
