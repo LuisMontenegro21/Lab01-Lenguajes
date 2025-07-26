@@ -102,10 +102,11 @@ class DFA(Automaton):
     def get_automaton(self) -> 'DFA':
         return self
         
-def build_dfa(nfa: NFA, w: str = None, visualize:bool=False) -> DFA:
+def build_dfa(nfa: NFA, w: str = None, visualize:bool=False, printt:bool = False) -> DFA:
     dfa = DFA()
     dfa.build(nfa=nfa)
-    dfa.print_automaton()
+    if printt:
+        dfa.print_automaton()
     if w:
         print(dfa.accepts(w=w))
     if visualize:

@@ -130,10 +130,11 @@ class MinDFA(DFA):
         print(f"Initial state : {self.initial_state}")
         print(f"Final state : {self.final_states}")
 
-def build_min_dfa(dfa: DFA, w:str=None, visualize:bool=False) -> MinDFA:
+def build_min_dfa(dfa: DFA, w:str=None, visualize:bool=False, printt:bool=False) -> MinDFA:
     min_dfa = MinDFA()
     min_dfa.build(dfa=dfa)
-    min_dfa.print_automaton()
+    if printt:
+        min_dfa.print_automaton()
     if w:
         print(min_dfa.accepts(w=w))
     if visualize:

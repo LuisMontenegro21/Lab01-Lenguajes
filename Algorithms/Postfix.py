@@ -1,26 +1,23 @@
 '''
 Functions used to perform the Shunting Yard algorithm to transform infix to postfix
+Needs some changes like converting symbols to ASCII for easier acceptance
 '''
 
 precedence:dict = {'|': 1, '.': 2, '*': 3, '+' : 3, '?' : 3}
 
 ESCAPED_CASES = {
-    'd' : "(0|1|2|3|4|5|6|7|8|9)",
-    'w' : "(" + "|".join(
-        list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")) + ")",
-    's' : "( |\\t|\\n|\\r|\\f|\\v)",
-    'D' : "(!0|!1|!2|!3|!4|!5|!6|!7|!8|!9)",
-    'W' : "(!" + "|!".join(
-        list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")) + ")",
-    'S' : "(! |!\\t|!\\n|!\\r|!\\f|!\\v)" # negated
+    'd' : list("0123456789"),
+    'w' : list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"),
+    's' : list(" \t\n\r\f\v"),
 }
+#TODO fix escaped cases
 ESCAPED_LITERALS = {
     's': ' ',       
-    't': '\\t',     
-    'n': '\\n',     
-    'r': '\\r',
-    'f': '\\f',
-    'v': '\\v',
+    't': '\t',     
+    'n': '\n',     
+    'r': '\r',
+    'f': '\f',
+    'v': '\v',
 }
 
 
@@ -70,13 +67,8 @@ def shunting_yard(expression: list[str]) -> list[str]:
 
     return output
 
-#TODO fix this to remove quotes
-def parse_quote(expr: str, i:int) -> tuple[str, int]:
-    if expr[i] in {'"', "'"} and i+2<len(expr) and expr[i+2] == expr[i]:
-        return expr[i+1], i+3
-    return expr[i], i+1
 
-def place_implicit_concat(regex: str) -> list[str]:
+def place_implicit_concat(regex: list[str]) -> list[str]:
     '''
     Place implicit symbol '.' for concatenation to simplify token handling
     '''
@@ -99,16 +91,26 @@ def place_implicit_concat(regex: str) -> list[str]:
         prev = token
     return tokens
 
-def expand_replace(regex: str) -> str:
+def expand_replace(regex: str) -> list:
     '''
     Expands ranges like [A-Z] into (A|B|C|D|E|F...|X|Z)
     Also handles escaped cases like \\d, \\w, \\s, etc.
+    And appends strings under "" as one character 
     '''
     i: int = 0
-    result: str = ""
+    result: list = []
     while i < len(regex):
+        # check special chars or strings
+        if regex[i] == '"':
+            i +=1 
+            special_char: str = ""
+            while i < len(regex) and regex[i] != '"':
+                special_char += regex[i]
+                i += 1
+            result.append(special_char)
+            i+=1
         # check if its a range
-        if regex[i] == '[':
+        elif regex[i] == '[':
             i += 1
             expanded: list = []
             while i < len(regex) and regex[i] != ']':
@@ -116,9 +118,9 @@ def expand_replace(regex: str) -> str:
                     if i + 1 < len(regex):
                         esc = regex[i+1] # get the escaped char
                         if esc in ESCAPED_LITERALS:
-                            expanded.append(ESCAPED_LITERALS[esc])
+                            expanded.extend(ESCAPED_LITERALS[esc])
                         elif esc in ESCAPED_CASES:
-                            expanded.append(ESCAPED_CASES[esc])
+                            expanded.extend(ESCAPED_CASES[esc])
                         else:
                             expanded.append('\\' + esc)
                         i += 2
@@ -135,11 +137,17 @@ def expand_replace(regex: str) -> str:
                 else:
                     expanded.append(regex[i])
                     i += 1
-            result += "(" + "|".join(expanded) + ")"
+            # append results as list containing
+            result.append('(')
+            for j, val in enumerate(expanded):
+                if j > 0: # append | after the first element
+                    result.append('|')
+                result.append(val)
+            result.append(')')
             i+=1
         # else, leave it unchanged and just append
         else:
-            result += regex[i]
+            result.append(regex[i])
             i += 1
     return result
 

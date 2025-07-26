@@ -220,10 +220,11 @@ class DDFA(Automaton):
 
 
 
-def build_direct_dfa(regex: str, w:str = None, visualize:bool = False) -> None:
+def build_direct_dfa(regex: str, w:str = None, visualize:bool = False, printt: bool = False) -> None:
     dfa = DDFA() # make instance
     dfa.build(regex=regex, visualize=visualize) # build DFA from a dfa
-    dfa.print_automaton()
+    if printt:
+        dfa.print_automaton()
     if w:
         print(dfa.accepts(w=w))
     if visualize:

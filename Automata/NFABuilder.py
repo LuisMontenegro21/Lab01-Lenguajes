@@ -125,9 +125,11 @@ class NFABuilder(Automaton):
         return self.nfa
 
 
-def build_nfa(regex: str, w:str = None, visualize:bool=False) -> NFA:
+def build_nfa(regex: str, w:str = None, visualize:bool=False, printt:bool=False) -> NFA:
     nfa_builder = NFABuilder()
     nfa_builder.build(regex=regex)
+    if printt:
+        nfa_builder.print_automaton()
     if w:
         print(nfa_builder.accepts(w=w))
     if visualize:
